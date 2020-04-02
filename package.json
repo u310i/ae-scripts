@@ -1,0 +1,21 @@
+{
+  "name": "ae_scripts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^7.1.1",
+    "@rollup/plugin-typescript": "^4.0.0",
+    "extendscript-es5-shim-ts": "0.0.1",
+    "rollup": "^2.3.2",
+    "tslib": "^1.11.1",
+    "types-for-adobe": "^1.6.1",
+    "typescript": "^3.8.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
