@@ -2,7 +2,7 @@ import "extendscript-es5-shim-ts";
 import { funcA } from "./utils";
 
 const func = (str: String): void => {
-  const arr = ["foo", "bar"];
+  const arr = ["foo", "bar", "baz"];
   arr.forEach(i => {
     alert(i);
   });
