@@ -7,7 +7,7 @@
     {
       "type": "extendscript-debug",
       "request": "launch",
-      "name": "Ask for script name",
+      "name": "my script",
       "program": "${workspaceFolder}/dist/bundle.jsx",
       "stopOnEntry": false
     }

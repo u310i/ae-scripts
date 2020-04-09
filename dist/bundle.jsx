@@ -1,6 +1,16 @@
 (function () {
   'use strict';
 
+  //trim.js
+  /*
+  https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/String/Trim
+  */
+  if (!String.prototype.trim) {
+  	// Вырезаем BOM и неразрывный пробел
+  	String.prototype.trim = function() {
+  		return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
+  	};
+  }
   //every.js
   /*
   https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every
@@ -481,38 +491,6 @@
       return false;
     };
   }
-  //bind.js
-  /*
-  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind#Polyfill
-
-  WARNING! Bound functions used as constructors NOT supported by this polyfill!
-  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind#Bound_functions_used_as_constructors
-  */
-  if (!Function.prototype.bind) {
-    Function.prototype.bind = function(oThis) {
-      if (this.__class__ !== 'Function') {
-        throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
-      }
-
-      var aArgs   = Array.prototype.slice.call(arguments, 1),
-          fToBind = this,
-          fNOP    = function() {},
-          fBound  = function() {
-            return fToBind.apply(this instanceof fNOP
-                   ? this
-                   : oThis,
-                   aArgs.concat(Array.prototype.slice.call(arguments)));
-          };
-
-      if (this.prototype) {
-        // Function.prototype doesn't have a prototype property
-        fNOP.prototype = this.prototype; 
-      }
-      fBound.prototype = new fNOP();
-
-      return fBound;
-    };
-  }
   //create.js
   if (!Object.create) {
     // Production steps of ECMA-262, Edition 5, 15.2.3.5
@@ -686,32 +664,6 @@
           return object;
       };
   }
-  //getOwnPropertyDescriptor.js
-  if (!Object.getOwnPropertyDescriptor) {
-
-      Object.getOwnPropertyDescriptor = function getOwnPropertyDescriptor(object, property) {
-          if (Object(object) !== object) {
-              throw new TypeError('Object.getOwnPropertyDescriptor can only be called on Objects.');
-          }
-
-          var descriptor;
-          if (!Object.prototype.hasOwnProperty.call(object, property)) {
-              return descriptor;
-          }
-
-          descriptor = {
-              enumerable: Object.prototype.propertyIsEnumerable.call(object, property),
-              configurable: true
-          };
-
-          descriptor.value = object[property];
-
-          var psPropertyType = object.reflect.find(property).type;
-          descriptor.writable = !(psPropertyType === "readonly");
-
-          return descriptor;
-      };
-  }
   //getOwnPropertyNames.js
   if (!Object.getOwnPropertyNames) {
       Object.getOwnPropertyNames = function getOwnPropertyNames(object) {
@@ -739,6 +691,32 @@
           return names;
       };
   }
+  //getOwnPropertyDescriptor.js
+  if (!Object.getOwnPropertyDescriptor) {
+
+      Object.getOwnPropertyDescriptor = function getOwnPropertyDescriptor(object, property) {
+          if (Object(object) !== object) {
+              throw new TypeError('Object.getOwnPropertyDescriptor can only be called on Objects.');
+          }
+
+          var descriptor;
+          if (!Object.prototype.hasOwnProperty.call(object, property)) {
+              return descriptor;
+          }
+
+          descriptor = {
+              enumerable: Object.prototype.propertyIsEnumerable.call(object, property),
+              configurable: true
+          };
+
+          descriptor.value = object[property];
+
+          var psPropertyType = object.reflect.find(property).type;
+          descriptor.writable = !(psPropertyType === "readonly");
+
+          return descriptor;
+      };
+  }
   //getPrototypeOf.js
   if (!Object.getPrototypeOf) {
   	Object.getPrototypeOf = function(object) {
@@ -759,20 +737,6 @@
           return true;
       };
   }
-  //isSealed.js
-  /*
-  https://github.com/es-shims/es5-shim/blob/master/es5-sham.js
-  */
-  // ES5 15.2.3.11
-  // http://es5.github.com/#x15.2.3.11
-  if (!Object.isSealed) {
-      Object.isSealed = function isSealed(object) {
-          if (Object(object) !== object) {
-              throw new TypeError('Object.isSealed can only be called on Objects.');
-          }
-          return false;
-      };
-  }
   //isFrozen.js
   /*
   https://github.com/es-shims/es5-shim/blob/master/es5-sham.js
@@ -783,6 +747,20 @@
       Object.isFrozen = function isFrozen(object) {
           if (Object(object) !== object) {
               throw new TypeError('Object.isFrozen can only be called on Objects.');
+          }
+          return false;
+      };
+  }
+  //isSealed.js
+  /*
+  https://github.com/es-shims/es5-shim/blob/master/es5-sham.js
+  */
+  // ES5 15.2.3.11
+  // http://es5.github.com/#x15.2.3.11
+  if (!Object.isSealed) {
+      Object.isSealed = function isSealed(object) {
+          if (Object(object) !== object) {
+              throw new TypeError('Object.isSealed can only be called on Objects.');
           }
           return false;
       };
@@ -838,522 +816,1247 @@
           return object;
       };
   }
-  //parseAndStringify.js
+  //bind.js
   /*
-      json2.js
-      2014-02-04
+  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind#Polyfill
 
-      Public Domain.
-
-      NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK.
-
-      See http://www.JSON.org/js.html
-
-
-      This code should be minified before deployment.
-      See http://javascript.crockford.com/jsmin.html
-
-      USE YOUR OWN COPY. IT IS EXTREMELY UNWISE TO LOAD CODE FROM SERVERS YOU DO
-      NOT CONTROL.
-
-
-      This file creates a global JSON object containing two methods: stringify
-      and parse.
-
-          JSON.stringify(value, replacer, space)
-              value       any JavaScript value, usually an object or array.
-
-              replacer    an optional parameter that determines how object
-                          values are stringified for objects. It can be a
-                          function or an array of strings.
-
-              space       an optional parameter that specifies the indentation
-                          of nested structures. If it is omitted, the text will
-                          be packed without extra whitespace. If it is a number,
-                          it will specify the number of spaces to indent at each
-                          level. If it is a string (such as '\t' or '&nbsp;'),
-                          it contains the characters used to indent at each level.
-
-              This method produces a JSON text from a JavaScript value.
-
-              When an object value is found, if the object contains a toJSON
-              method, its toJSON method will be called and the result will be
-              stringified. A toJSON method does not serialize: it returns the
-              value represented by the name/value pair that should be serialized,
-              or undefined if nothing should be serialized. The toJSON method
-              will be passed the key associated with the value, and this will be
-              bound to the value
-
-              For example, this would serialize Dates as ISO strings.
-
-                  Date.prototype.toJSON = function (key) {
-                      function f(n) {
-                          // Format integers to have at least two digits.
-                          return n < 10 ? '0' + n : n;
-                      }
-
-                      return this.getUTCFullYear()   + '-' +
-                           f(this.getUTCMonth() + 1) + '-' +
-                           f(this.getUTCDate())      + 'T' +
-                           f(this.getUTCHours())     + ':' +
-                           f(this.getUTCMinutes())   + ':' +
-                           f(this.getUTCSeconds())   + 'Z';
-                  };
-
-              You can provide an optional replacer method. It will be passed the
-              key and value of each member, with this bound to the containing
-              object. The value that is returned from your method will be
-              serialized. If your method returns undefined, then the member will
-              be excluded from the serialization.
-
-              If the replacer parameter is an array of strings, then it will be
-              used to select the members to be serialized. It filters the results
-              such that only members with keys listed in the replacer array are
-              stringified.
-
-              Values that do not have JSON representations, such as undefined or
-              functions, will not be serialized. Such values in objects will be
-              dropped; in arrays they will be replaced with null. You can use
-              a replacer function to replace those with JSON values.
-              JSON.stringify(undefined) returns undefined.
-
-              The optional space parameter produces a stringification of the
-              value that is filled with line breaks and indentation to make it
-              easier to read.
-
-              If the space parameter is a non-empty string, then that string will
-              be used for indentation. If the space parameter is a number, then
-              the indentation will be that many spaces.
-
-              Example:
-
-              text = JSON.stringify(['e', {pluribus: 'unum'}]);
-              // text is '["e",{"pluribus":"unum"}]'
-
-
-              text = JSON.stringify(['e', {pluribus: 'unum'}], null, '\t');
-              // text is '[\n\t"e",\n\t{\n\t\t"pluribus": "unum"\n\t}\n]'
-
-              text = JSON.stringify([new Date()], function (key, value) {
-                  return this[key] instanceof Date ?
-                      'Date(' + this[key] + ')' : value;
-              });
-              // text is '["Date(---current time---)"]'
-
-
-          JSON.parse(text, reviver)
-              This method parses a JSON text to produce an object or array.
-              It can throw a SyntaxError exception.
-
-              The optional reviver parameter is a function that can filter and
-              transform the results. It receives each of the keys and values,
-              and its return value is used instead of the original value.
-              If it returns what it received, then the structure is not modified.
-              If it returns undefined then the member is deleted.
-
-              Example:
-
-              // Parse the text. Values that look like ISO date strings will
-              // be converted to Date objects.
-
-              myData = JSON.parse(text, function (key, value) {
-                  var a;
-                  if (typeof value === 'string') {
-                      a =
-  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/.exec(value);
-                      if (a) {
-                          return new Date(Date.UTC(+a[1], +a[2] - 1, +a[3], +a[4],
-                              +a[5], +a[6]));
-                      }
-                  }
-                  return value;
-              });
-
-              myData = JSON.parse('["Date(09/09/2001)"]', function (key, value) {
-                  var d;
-                  if (typeof value === 'string' &&
-                          value.slice(0, 5) === 'Date(' &&
-                          value.slice(-1) === ')') {
-                      d = new Date(value.slice(5, -1));
-                      if (d) {
-                          return d;
-                      }
-                  }
-                  return value;
-              });
-
-
-      This is a reference implementation. You are free to copy, modify, or
-      redistribute.
+  WARNING! Bound functions used as constructors NOT supported by this polyfill!
+  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind#Bound_functions_used_as_constructors
   */
+  if (!Function.prototype.bind) {
+    Function.prototype.bind = function(oThis) {
+      if (this.__class__ !== 'Function') {
+        throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
+      }
 
-  /*jslint evil: true, regexp: true */
+      var aArgs   = Array.prototype.slice.call(arguments, 1),
+          fToBind = this,
+          fNOP    = function() {},
+          fBound  = function() {
+            return fToBind.apply(this instanceof fNOP
+                   ? this
+                   : oThis,
+                   aArgs.concat(Array.prototype.slice.call(arguments)));
+          };
 
-  /*members "", "\b", "\t", "\n", "\f", "\r", "\"", JSON, "\\", apply,
-      call, charCodeAt, getUTCDate, getUTCFullYear, getUTCHours,
-      getUTCMinutes, getUTCMonth, getUTCSeconds, hasOwnProperty, join,
-      lastIndex, length, parse, prototype, push, replace, slice, stringify,
-      test, toJSON, toString, valueOf
+      if (this.prototype) {
+        // Function.prototype doesn't have a prototype property
+        fNOP.prototype = this.prototype; 
+      }
+      fBound.prototype = new fNOP();
+
+      return fBound;
+    };
+  }
+  //toISOString.js
+  /*
+  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
   */
+  if (!Date.prototype.toISOString) {
+    (function() {
 
+      function pad(number) {
+        if (number < 10) {
+          return '0' + number;
+        }
+        return number;
+      }
 
-  // Create a JSON object only if one does not already exist. We create the
-  // methods in a closure to avoid creating global variables.
+      Date.prototype.toISOString = function() {
+        return this.getUTCFullYear() +
+          '-' + pad(this.getUTCMonth() + 1) +
+          '-' + pad(this.getUTCDate()) +
+          'T' + pad(this.getUTCHours()) +
+          ':' + pad(this.getUTCMinutes()) +
+          ':' + pad(this.getUTCSeconds()) +
+          '.' + (this.getUTCMilliseconds() / 1000).toFixed(3).slice(2, 5) +
+          'Z';
+      };
 
-  if (typeof JSON !== 'object') {
-    JSON = {};
+    }());
   }
 
-  (function () {
+  //from.js
+  // Production steps of ECMA-262, Edition 6, 22.1.2.1
+  if (!Array.from) {
+    Array.from = (function () {
+      var toStr = Object.prototype.toString;
+      var isCallable = function (fn) {
+        return typeof fn === 'function' || toStr.call(fn) === '[object Function]';
+      };
+      var toInteger = function (value) {
+        var number = Number(value);
+        if (isNaN(number)) { return 0; }
+        if (number === 0 || !isFinite(number)) { return number; }
+        return (number > 0 ? 1 : -1) * Math.floor(Math.abs(number));
+      };
+      var maxSafeInteger = Math.pow(2, 53) - 1;
+      var toLength = function (value) {
+        var len = toInteger(value);
+        return Math.min(Math.max(len, 0), maxSafeInteger);
+      };
 
-    function f(n) {
-        // Format integers to have at least two digits.
-        return n < 10 ? '0' + n : n;
-    }
+      // The length property of the from method is 1.
+      return function from(arrayLike/*, mapFn, thisArg */) {
+        // 1. Let C be the this value.
+        var C = this;
 
-    if (typeof Date.prototype.toJSON !== 'function') {
+        // 2. Let items be ToObject(arrayLike).
+        var items = Object(arrayLike);
 
-        Date.prototype.toJSON = function () {
-
-            return isFinite(this.valueOf())
-                ? this.getUTCFullYear()     + '-' +
-                    f(this.getUTCMonth() + 1) + '-' +
-                    f(this.getUTCDate())      + 'T' +
-                    f(this.getUTCHours())     + ':' +
-                    f(this.getUTCMinutes())   + ':' +
-                    f(this.getUTCSeconds())   + 'Z'
-                : null;
-        };
-
-        String.prototype.toJSON      =
-            Number.prototype.toJSON  =
-            Boolean.prototype.toJSON = function () {
-                return this.valueOf();
-            };
-    }
-
-    var cx,
-        escapable,
-        gap,
-        indent,
-        meta,
-        rep;
-
-
-    function quote(string) {
-
-  // If the string contains no control characters, no quote characters, and no
-  // backslash characters, then we can safely slap some quotes around it.
-  // Otherwise we must also replace the offending characters with safe escape
-  // sequences.
-
-        escapable.lastIndex = 0;
-        return escapable.test(string) ? '"' + string.replace(escapable, function (a) {
-            var c = meta[a];
-            return typeof c === 'string'
-                ? c
-                : '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
-        }) + '"' : '"' + string + '"';
-    }
-
-
-    function str(key, holder) {
-
-  // Produce a string from holder[key].
-
-        var i,          // The loop counter.
-            k,          // The member key.
-            v,          // The member value.
-            length,
-            mind = gap,
-            partial,
-            value = holder[key];
-
-  // If the value has a toJSON method, call it to obtain a replacement value.
-
-        if (value && typeof value === 'object' &&
-                typeof value.toJSON === 'function') {
-            value = value.toJSON(key);
+        // 3. ReturnIfAbrupt(items).
+        if (arrayLike == null) {
+          throw new TypeError('Array.from requires an array-like object - not null or undefined');
         }
 
-  // If we were called with a replacer function, then call the replacer to
-  // obtain a replacement value.
+        // 4. If mapfn is undefined, then let mapping be false.
+        var mapFn = arguments.length > 1 ? arguments[1] : void undefined;
+        var T;
+        if (typeof mapFn !== 'undefined') {
+          // 5. else
+          // 5. a If IsCallable(mapfn) is false, throw a TypeError exception.
+          if (!isCallable(mapFn)) {
+            throw new TypeError('Array.from: when provided, the second argument must be a function');
+          }
 
-        if (typeof rep === 'function') {
-            value = rep.call(holder, key, value);
+          // 5. b. If thisArg was supplied, let T be thisArg; else let T be undefined.
+          if (arguments.length > 2) {
+            T = arguments[2];
+          }
         }
 
-  // What happens next depends on the value's type.
+        // 10. Let lenValue be Get(items, "length").
+        // 11. Let len be ToLength(lenValue).
+        var len = toLength(items.length);
 
-        switch (typeof value) {
-        case 'string':
-            return quote(value);
+        // 13. If IsConstructor(C) is true, then
+        // 13. a. Let A be the result of calling the [[Construct]] internal method 
+        // of C with an argument list containing the single item len.
+        // 14. a. Else, Let A be ArrayCreate(len).
+        var A = isCallable(C) ? Object(new C(len)) : new Array(len);
 
-        case 'number':
-
-  // JSON numbers must be finite. Encode non-finite numbers as null.
-
-            return isFinite(value) ? String(value) : 'null';
-
-        case 'boolean':
-        case 'null':
-
-  // If the value is a boolean or null, convert it to a string. Note:
-  // typeof null does not produce 'null'. The case is included here in
-  // the remote chance that this gets fixed someday.
-
-            return String(value);
-
-  // If the type is 'object', we might be dealing with an object or an array or
-  // null.
-
-        case 'object':
-
-  // Due to a specification blunder in ECMAScript, typeof null is 'object',
-  // so watch out for that case.
-
-            if (!value) {
-                return 'null';
-            }
-
-  // Make an array to hold the partial results of stringifying this object value.
-
-            gap += indent;
-            partial = [];
-
-  // Is the value an array?
-
-            if (Object.prototype.toString.apply(value) === '[object Array]') {
-
-  // The value is an array. Stringify every element. Use null as a placeholder
-  // for non-JSON values.
-
-                length = value.length;
-                for (i = 0; i < length; i += 1) {
-                    partial[i] = str(i, value) || 'null';
-                }
-
-  // Join all of the elements together, separated with commas, and wrap them in
-  // brackets.
-
-                v = partial.length === 0
-                    ? '[]'
-                    : gap
-                    ? '[\n' + gap + partial.join(',\n' + gap) + '\n' + mind + ']'
-                    : '[' + partial.join(',') + ']';
-                gap = mind;
-                return v;
-            }
-
-  // If the replacer is an array, use it to select the members to be stringified.
-
-            if (rep && typeof rep === 'object') {
-                length = rep.length;
-                for (i = 0; i < length; i += 1) {
-                    if (typeof rep[i] === 'string') {
-                        k = rep[i];
-                        v = str(k, value);
-                        if (v) {
-                            partial.push(quote(k) + (gap ? ': ' : ':') + v);
-                        }
-                    }
-                }
-            } else {
-
-  // Otherwise, iterate through all of the keys in the object.
-
-                for (k in value) {
-                    if (Object.prototype.hasOwnProperty.call(value, k)) {
-                        v = str(k, value);
-                        if (v) {
-                            partial.push(quote(k) + (gap ? ': ' : ':') + v);
-                        }
-                    }
-                }
-            }
-
-  // Join all of the member texts together, separated with commas,
-  // and wrap them in braces.
-
-            v = partial.length === 0
-                ? '{}'
-                : gap
-                ? '{\n' + gap + partial.join(',\n' + gap) + '\n' + mind + '}'
-                : '{' + partial.join(',') + '}';
-            gap = mind;
-            return v;
+        // 16. Let k be 0.
+        var k = 0;
+        // 17. Repeat, while k < len… (also steps a - h)
+        var kValue;
+        while (k < len) {
+          kValue = items[k];
+          if (mapFn) {
+            A[k] = typeof T === 'undefined' ? mapFn(kValue, k) : mapFn.call(T, kValue, k);
+          } else {
+            A[k] = kValue;
+          }
+          k += 1;
         }
-    }
+        // 18. Let putStatus be Put(A, "length", len, true).
+        A.length = len;
+        // 20. Return A.
+        return A;
+      };
+    }());
+  }
 
-  // If the JSON object does not yet have a stringify method, give it one.
-
-    if (typeof JSON.stringify !== 'function') {
-        escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
-        meta = {    // table of character substitutions
-            '\b': '\\b',
-            '\t': '\\t',
-            '\n': '\\n',
-            '\f': '\\f',
-            '\r': '\\r',
-            '"' : '\\"',
-            '\\': '\\\\'
-        };
-        JSON.stringify = function (value, replacer, space) {
-
-  // The stringify method takes a value and an optional replacer, and an optional
-  // space parameter, and returns a JSON text. The replacer can be a function
-  // that can replace values, or an array of strings that will select the keys.
-  // A default replacer method can be provided. Use of the space parameter can
-  // produce text that is more easily readable.
-
-            var i;
-            gap = '';
-            indent = '';
-
-  // If the space parameter is a number, make an indent string containing that
-  // many spaces.
-
-            if (typeof space === 'number') {
-                for (i = 0; i < space; i += 1) {
-                    indent += ' ';
-                }
-
-  // If the space parameter is a string, it will be used as the indent string.
-
-            } else if (typeof space === 'string') {
-                indent = space;
-            }
-
-  // If there is a replacer, it must be a function or an array.
-  // Otherwise, throw an error.
-
-            rep = replacer;
-            if (replacer && typeof replacer !== 'function' &&
-                    (typeof replacer !== 'object' ||
-                    typeof replacer.length !== 'number')) {
-                throw new Error('JSON.stringify');
-            }
-
-  // Make a fake root object containing our value under the key of ''.
-  // Return the result of stringifying the value.
-
-            return str('', {'': value});
-        };
-    }
-
-
-  // If the JSON object does not yet have a parse method, give it one.
-
-    if (typeof JSON.parse !== 'function') {
-        cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
-        JSON.parse = function (text, reviver) {
-
-  // The parse method takes a text and an optional reviver function, and returns
-  // a JavaScript value if the text is a valid JSON text.
-
-            var j;
-
-            function walk(holder, key) {
-
-  // The walk method is used to recursively walk the resulting structure so
-  // that modifications can be made.
-
-                var k, v, value = holder[key];
-                if (value && typeof value === 'object') {
-                    for (k in value) {
-                        if (Object.prototype.hasOwnProperty.call(value, k)) {
-                            v = walk(value, k);
-                            if (v !== undefined) {
-                                value[k] = v;
-                            } else {
-                                delete value[k];
-                            }
-                        }
-                    }
-                }
-                return reviver.call(holder, key, value);
-            }
-
-
-  // Parsing happens in four stages. In the first stage, we replace certain
-  // Unicode characters with escape sequences. JavaScript handles many characters
-  // incorrectly, either silently deleting them, or treating them as line endings.
-
-            text = String(text);
-            cx.lastIndex = 0;
-            if (cx.test(text)) {
-                text = text.replace(cx, function (a) {
-                    return '\\u' +
-                        ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
-                });
-            }
-
-  // In the second stage, we run the text against regular expressions that look
-  // for non-JSON patterns. We are especially concerned with '()' and 'new'
-  // because they can cause invocation, and '=' because it can cause mutation.
-  // But just to be safe, we want to reject all unexpected forms.
-
-  // We split the second stage into 4 regexp operations in order to work around
-  // crippling inefficiencies in IE's and Safari's regexp engines. First we
-  // replace the JSON backslash pairs with '@' (a non-JSON character). Second, we
-  // replace all simple value tokens with ']' characters. Third, we delete all
-  // open brackets that follow a colon or comma or that begin the text. Finally,
-  // we look to see that the remaining characters are only whitespace or ']' or
-  // ',' or ':' or '{' or '}'. If that is so, then the text is safe for eval.
-
-            if (/^[\],:{}\s]*$/
-                    .test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@')
-                        .replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']')
-                        .replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
-
-  // In the third stage we use the eval function to compile the text into a
-  // JavaScript structure. The '{' operator is subject to a syntactic ambiguity
-  // in JavaScript: it can begin a block or an object literal. We wrap the text
-  // in parens to eliminate the ambiguity.
-
-                j = eval('(' + text + ')');
-
-  // In the optional fourth stage, we recursively walk the new structure, passing
-  // each name/value pair to a reviver function for possible transformation.
-
-                return typeof reviver === 'function'
-                    ? walk({'': j}, '')
-                    : j;
-            }
-
-  // If the text is not JSON parseable, then a SyntaxError is thrown.
-
-            throw new SyntaxError('JSON.parse');
-        };
-    }
-  }());
-
-  //trim.js
+  //reduce.js
   /*
-  https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/String/Trim
+  Source of the polyfill: 
+  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce#Polyfill
+
   */
-  if (!String.prototype.trim) {
-  	// Вырезаем BOM и неразрывный пробел
-  	String.prototype.trim = function() {
-  		return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
+
+  if(!Array.prototype.reduce){
+      
+      Array.prototype.reduce = function(callback) {
+          if (this == null) {
+          throw new TypeError('Array.prototype.reduce called on null or undefined');
+          }
+          if (typeof callback !== 'function') {
+          throw new TypeError(callback + ' is not a function');
+          }
+          var t = Object(this), len = t.length >>> 0, k = 0, value;
+          if (arguments.length == 2) {
+          value = arguments[1];
+          } else {
+          while (k < len && !(k in t)) {
+              k++; 
+          }
+          if (k >= len) {
+              throw new TypeError('Reduce of empty array with no initial value');
+          }
+          value = t[k++];
+          }
+          for (; k < len; k++) {
+          if (k in t) {
+              value = callback(value, t[k], k, t);
+          }
+          }
+          return value;
+      };
+  }
+  //assign.js
+  /**
+   * https://gist.github.com/WebReflection/10404826
+   */
+  /* eslint no-use-before-define: off */
+
+  try {
+    Object.assign({}, {foo: 'bar'});
+  }catch(err) {
+    // failed: so we're in IE8
+    (function() {
+      Object.assign = (function(has) {
+        return assign;
+        function assign(target, source) {
+          for (var i = 1; i < arguments.length; i++) {
+            copy(target, arguments[i]);
+          }
+          return target;
+        }
+        function copy(target, source) {
+          for (var key in source) {
+            if (has.call(source, key)) {
+              target[key] = source[key];
+            }
+          }
+        }
+      }({}.hasOwnProperty));
+    }());
+  }
+
+  // https://tc39.github.io/ecma262/#sec-array.prototype.find
+  if (!Array.prototype.find) {
+    Object.defineProperty(Array.prototype, "find", {
+      value: function(predicate) {
+        // 1. Let O be ? ToObject(this value).
+        if (this == null) {
+          throw TypeError('"this" is null or not defined');
+        }
+
+        var o = Object(this);
+
+        // 2. Let len be ? ToLength(? Get(O, "length")).
+        var len = o.length >>> 0;
+
+        // 3. If IsCallable(predicate) is false, throw a TypeError exception.
+        if (typeof predicate !== "function") {
+          throw TypeError("predicate must be a function");
+        }
+
+        // 4. If thisArg was supplied, let T be thisArg; else let T be undefined.
+        var thisArg = arguments[1];
+
+        // 5. Let k be 0.
+        var k = 0;
+
+        // 6. Repeat, while k < len
+        while (k < len) {
+          // a. Let Pk be ! ToString(k).
+          // b. Let kValue be ? Get(O, Pk).
+          // c. Let testResult be ToBoolean(? Call(predicate, T, « kValue, k, O »)).
+          // d. If testResult is true, return kValue.
+          var kValue = o[k];
+          if (predicate.call(thisArg, kValue, k, o)) {
+            return kValue;
+          }
+          // e. Increase k by 1.
+          k++;
+        }
+
+        // 7. Return undefined.
+        return undefined;
+      },
+      configurable: true,
+      writable: true
+    });
+  }
+
+  if (!Array.prototype.findIndex) {
+    Array.prototype.findIndex = function(predicate) {
+      if (this === null) {
+        throw new TypeError(
+          "Array.prototype.findIndex called on null or undefined"
+        );
+      }
+      if (typeof predicate !== "function") {
+        throw new TypeError("predicate must be a function");
+      }
+      var list = Object(this);
+      var length = list.length >>> 0;
+      var thisArg = arguments[1];
+      var value;
+
+      for (var i = 0; i < length; i++) {
+        value = list[i];
+        if (predicate.call(thisArg, value, i, list)) {
+          return i;
+        }
+      }
+      return -1;
+    };
+  }
+
+  var toStr = Object.prototype.toString;
+
+  var isArguments = function isArguments(value) {
+  	var str = toStr.call(value);
+  	var isArgs = str === '[object Arguments]';
+  	if (!isArgs) {
+  		isArgs = str !== '[object Array]' &&
+  			value !== null &&
+  			typeof value === 'object' &&
+  			typeof value.length === 'number' &&
+  			value.length >= 0 &&
+  			toStr.call(value.callee) === '[object Function]';
+  	}
+  	return isArgs;
+  };
+
+  var keysShim;
+  if (!Object.keys) {
+  	// modified from https://github.com/es-shims/es5-shim
+  	var has = Object.prototype.hasOwnProperty;
+  	var toStr$1 = Object.prototype.toString;
+  	var isArgs = isArguments; // eslint-disable-line global-require
+  	var isEnumerable = Object.prototype.propertyIsEnumerable;
+  	var hasDontEnumBug = !isEnumerable.call({ toString: null }, 'toString');
+  	var hasProtoEnumBug = isEnumerable.call(function () {}, 'prototype');
+  	var dontEnums = [
+  		'toString',
+  		'toLocaleString',
+  		'valueOf',
+  		'hasOwnProperty',
+  		'isPrototypeOf',
+  		'propertyIsEnumerable',
+  		'constructor'
+  	];
+  	var equalsConstructorPrototype = function (o) {
+  		var ctor = o.constructor;
+  		return ctor && ctor.prototype === o;
+  	};
+  	var excludedKeys = {
+  		$applicationCache: true,
+  		$console: true,
+  		$external: true,
+  		$frame: true,
+  		$frameElement: true,
+  		$frames: true,
+  		$innerHeight: true,
+  		$innerWidth: true,
+  		$onmozfullscreenchange: true,
+  		$onmozfullscreenerror: true,
+  		$outerHeight: true,
+  		$outerWidth: true,
+  		$pageXOffset: true,
+  		$pageYOffset: true,
+  		$parent: true,
+  		$scrollLeft: true,
+  		$scrollTop: true,
+  		$scrollX: true,
+  		$scrollY: true,
+  		$self: true,
+  		$webkitIndexedDB: true,
+  		$webkitStorageInfo: true,
+  		$window: true
+  	};
+  	var hasAutomationEqualityBug = (function () {
+  		/* global window */
+  		if (typeof window === 'undefined') { return false; }
+  		for (var k in window) {
+  			try {
+  				if (!excludedKeys['$' + k] && has.call(window, k) && window[k] !== null && typeof window[k] === 'object') {
+  					try {
+  						equalsConstructorPrototype(window[k]);
+  					} catch (e) {
+  						return true;
+  					}
+  				}
+  			} catch (e) {
+  				return true;
+  			}
+  		}
+  		return false;
+  	}());
+  	var equalsConstructorPrototypeIfNotBuggy = function (o) {
+  		/* global window */
+  		if (typeof window === 'undefined' || !hasAutomationEqualityBug) {
+  			return equalsConstructorPrototype(o);
+  		}
+  		try {
+  			return equalsConstructorPrototype(o);
+  		} catch (e) {
+  			return false;
+  		}
+  	};
+
+  	keysShim = function keys(object) {
+  		var isObject = object !== null && typeof object === 'object';
+  		var isFunction = toStr$1.call(object) === '[object Function]';
+  		var isArguments = isArgs(object);
+  		var isString = isObject && toStr$1.call(object) === '[object String]';
+  		var theKeys = [];
+
+  		if (!isObject && !isFunction && !isArguments) {
+  			throw new TypeError('Object.keys called on a non-object');
+  		}
+
+  		var skipProto = hasProtoEnumBug && isFunction;
+  		if (isString && object.length > 0 && !has.call(object, 0)) {
+  			for (var i = 0; i < object.length; ++i) {
+  				theKeys.push(String(i));
+  			}
+  		}
+
+  		if (isArguments && object.length > 0) {
+  			for (var j = 0; j < object.length; ++j) {
+  				theKeys.push(String(j));
+  			}
+  		} else {
+  			for (var name in object) {
+  				if (!(skipProto && name === 'prototype') && has.call(object, name)) {
+  					theKeys.push(String(name));
+  				}
+  			}
+  		}
+
+  		if (hasDontEnumBug) {
+  			var skipConstructor = equalsConstructorPrototypeIfNotBuggy(object);
+
+  			for (var k = 0; k < dontEnums.length; ++k) {
+  				if (!(skipConstructor && dontEnums[k] === 'constructor') && has.call(object, dontEnums[k])) {
+  					theKeys.push(dontEnums[k]);
+  				}
+  			}
+  		}
+  		return theKeys;
   	};
   }
+  var implementation = keysShim;
 
-  var funcA = function () { return "funcA"; };
+  var slice = Array.prototype.slice;
 
-  var func = function (str) {
-      var arr = ["foo", "bar"];
-      arr.forEach(function (i) {
-          alert(i);
-      });
-      // const obj = {
-      //   foo: "foo",
-      //   bar: "bar"
-      // };
-      // const { foo, ...bbb } = obj;
-      // alert(foo);
-      alert(str + ": You just sent an alert to After Effects");
+
+  var origKeys = Object.keys;
+  var keysShim$1 = origKeys ? function keys(o) { return origKeys(o); } : implementation;
+
+  var originalKeys = Object.keys;
+
+  keysShim$1.shim = function shimObjectKeys() {
+  	if (Object.keys) {
+  		var keysWorksWithArguments = (function () {
+  			// Safari 5.0 bug
+  			var args = Object.keys(arguments);
+  			return args && args.length === arguments.length;
+  		}(1, 2));
+  		if (!keysWorksWithArguments) {
+  			Object.keys = function keys(object) { // eslint-disable-line func-name-matching
+  				if (isArguments(object)) {
+  					return originalKeys(slice.call(object));
+  				}
+  				return originalKeys(object);
+  			};
+  		}
+  	} else {
+  		Object.keys = keysShim$1;
+  	}
+  	return Object.keys || keysShim$1;
   };
-  func(funcA());
+
+  var D__Documents_Projects_myProjects_AE_Scripts_node_modules_objectKeys = keysShim$1;
+
+  var hasSymbols = typeof Symbol === 'function' && typeof Symbol('foo') === 'symbol';
+
+  var toStr$2 = Object.prototype.toString;
+  var concat = Array.prototype.concat;
+  var origDefineProperty = Object.defineProperty;
+
+  var isFunction = function (fn) {
+  	return typeof fn === 'function' && toStr$2.call(fn) === '[object Function]';
+  };
+
+  var arePropertyDescriptorsSupported = function () {
+  	var obj = {};
+  	try {
+  		origDefineProperty(obj, 'x', { enumerable: false, value: obj });
+  		// eslint-disable-next-line no-unused-vars, no-restricted-syntax
+  		for (var _ in obj) { // jscs:ignore disallowUnusedVariables
+  			return false;
+  		}
+  		return obj.x === obj;
+  	} catch (e) { /* this is IE 8. */
+  		return false;
+  	}
+  };
+  var supportsDescriptors = origDefineProperty && arePropertyDescriptorsSupported();
+
+  var defineProperty = function (object, name, value, predicate) {
+  	if (name in object && (!isFunction(predicate) || !predicate())) {
+  		return;
+  	}
+  	if (supportsDescriptors) {
+  		origDefineProperty(object, name, {
+  			configurable: true,
+  			enumerable: false,
+  			value: value,
+  			writable: true
+  		});
+  	} else {
+  		object[name] = value;
+  	}
+  };
+
+  var defineProperties = function (object, map) {
+  	var predicates = arguments.length > 2 ? arguments[2] : {};
+  	var props = D__Documents_Projects_myProjects_AE_Scripts_node_modules_objectKeys(map);
+  	if (hasSymbols) {
+  		props = concat.call(props, Object.getOwnPropertySymbols(map));
+  	}
+  	for (var i = 0; i < props.length; i += 1) {
+  		defineProperty(object, props[i], map[props[i]], predicates[props[i]]);
+  	}
+  };
+
+  defineProperties.supportsDescriptors = !!supportsDescriptors;
+
+  var D__Documents_Projects_myProjects_AE_Scripts_node_modules_defineProperties = defineProperties;
+
+  var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+  function createCommonjsModule(fn, module) {
+  	return module = { exports: {} }, fn(module, module.exports), module.exports;
+  }
+
+  /* eslint complexity: [2, 18], max-statements: [2, 33] */
+  var shams = function hasSymbols() {
+  	if (typeof Symbol !== 'function' || typeof Object.getOwnPropertySymbols !== 'function') { return false; }
+  	if (typeof Symbol.iterator === 'symbol') { return true; }
+
+  	var obj = {};
+  	var sym = Symbol('test');
+  	var symObj = Object(sym);
+  	if (typeof sym === 'string') { return false; }
+
+  	if (Object.prototype.toString.call(sym) !== '[object Symbol]') { return false; }
+  	if (Object.prototype.toString.call(symObj) !== '[object Symbol]') { return false; }
+
+  	// temp disabled per https://github.com/ljharb/object.assign/issues/17
+  	// if (sym instanceof Symbol) { return false; }
+  	// temp disabled per https://github.com/WebReflection/get-own-property-symbols/issues/4
+  	// if (!(symObj instanceof Symbol)) { return false; }
+
+  	// if (typeof Symbol.prototype.toString !== 'function') { return false; }
+  	// if (String(sym) !== Symbol.prototype.toString.call(sym)) { return false; }
+
+  	var symVal = 42;
+  	obj[sym] = symVal;
+  	for (sym in obj) { return false; } // eslint-disable-line no-restricted-syntax
+  	if (typeof Object.keys === 'function' && Object.keys(obj).length !== 0) { return false; }
+
+  	if (typeof Object.getOwnPropertyNames === 'function' && Object.getOwnPropertyNames(obj).length !== 0) { return false; }
+
+  	var syms = Object.getOwnPropertySymbols(obj);
+  	if (syms.length !== 1 || syms[0] !== sym) { return false; }
+
+  	if (!Object.prototype.propertyIsEnumerable.call(obj, sym)) { return false; }
+
+  	if (typeof Object.getOwnPropertyDescriptor === 'function') {
+  		var descriptor = Object.getOwnPropertyDescriptor(obj, sym);
+  		if (descriptor.value !== symVal || descriptor.enumerable !== true) { return false; }
+  	}
+
+  	return true;
+  };
+
+  var origSymbol = commonjsGlobal.Symbol;
+
+
+  var D__Documents_Projects_myProjects_AE_Scripts_node_modules_hasSymbols = function hasNativeSymbols() {
+  	if (typeof origSymbol !== 'function') { return false; }
+  	if (typeof Symbol !== 'function') { return false; }
+  	if (typeof origSymbol('foo') !== 'symbol') { return false; }
+  	if (typeof Symbol('bar') !== 'symbol') { return false; }
+
+  	return shams();
+  };
+
+  /* eslint no-invalid-this: 1 */
+
+  var ERROR_MESSAGE = 'Function.prototype.bind called on incompatible ';
+  var slice$1 = Array.prototype.slice;
+  var toStr$3 = Object.prototype.toString;
+  var funcType = '[object Function]';
+
+  var implementation$1 = function bind(that) {
+      var target = this;
+      if (typeof target !== 'function' || toStr$3.call(target) !== funcType) {
+          throw new TypeError(ERROR_MESSAGE + target);
+      }
+      var args = slice$1.call(arguments, 1);
+
+      var bound;
+      var binder = function () {
+          if (this instanceof bound) {
+              var result = target.apply(
+                  this,
+                  args.concat(slice$1.call(arguments))
+              );
+              if (Object(result) === result) {
+                  return result;
+              }
+              return this;
+          } else {
+              return target.apply(
+                  that,
+                  args.concat(slice$1.call(arguments))
+              );
+          }
+      };
+
+      var boundLength = Math.max(0, target.length - args.length);
+      var boundArgs = [];
+      for (var i = 0; i < boundLength; i++) {
+          boundArgs.push('$' + i);
+      }
+
+      bound = Function('binder', 'return function (' + boundArgs.join(',') + '){ return binder.apply(this,arguments); }')(binder);
+
+      if (target.prototype) {
+          var Empty = function Empty() {};
+          Empty.prototype = target.prototype;
+          bound.prototype = new Empty();
+          Empty.prototype = null;
+      }
+
+      return bound;
+  };
+
+  var D__Documents_Projects_myProjects_AE_Scripts_node_modules_functionBind = Function.prototype.bind || implementation$1;
+
+  /* globals
+  	Atomics,
+  	SharedArrayBuffer,
+  */
+
+  var undefined$1;
+
+  var $TypeError = TypeError;
+
+  var $gOPD = Object.getOwnPropertyDescriptor;
+  if ($gOPD) {
+  	try {
+  		$gOPD({}, '');
+  	} catch (e) {
+  		$gOPD = null; // this is IE 8, which has a broken gOPD
+  	}
+  }
+
+  var throwTypeError = function () { throw new $TypeError(); };
+  var ThrowTypeError = $gOPD
+  	? (function () {
+  		try {
+  			// eslint-disable-next-line no-unused-expressions, no-caller, no-restricted-properties
+  			arguments.callee; // IE 8 does not throw here
+  			return throwTypeError;
+  		} catch (calleeThrows) {
+  			try {
+  				// IE 8 throws on Object.getOwnPropertyDescriptor(arguments, '')
+  				return $gOPD(arguments, 'callee').get;
+  			} catch (gOPDthrows) {
+  				return throwTypeError;
+  			}
+  		}
+  	}())
+  	: throwTypeError;
+
+  var hasSymbols$1 = D__Documents_Projects_myProjects_AE_Scripts_node_modules_hasSymbols();
+
+  var getProto = Object.getPrototypeOf || function (x) { return x.__proto__; }; // eslint-disable-line no-proto
+  var generatorFunction =  undefined$1;
+  var asyncFunction =  undefined$1;
+  var asyncGenFunction =  undefined$1;
+
+  var TypedArray = typeof Uint8Array === 'undefined' ? undefined$1 : getProto(Uint8Array);
+
+  var INTRINSICS = {
+  	'%Array%': Array,
+  	'%ArrayBuffer%': typeof ArrayBuffer === 'undefined' ? undefined$1 : ArrayBuffer,
+  	'%ArrayBufferPrototype%': typeof ArrayBuffer === 'undefined' ? undefined$1 : ArrayBuffer.prototype,
+  	'%ArrayIteratorPrototype%': hasSymbols$1 ? getProto([][Symbol.iterator]()) : undefined$1,
+  	'%ArrayPrototype%': Array.prototype,
+  	'%ArrayProto_entries%': Array.prototype.entries,
+  	'%ArrayProto_forEach%': Array.prototype.forEach,
+  	'%ArrayProto_keys%': Array.prototype.keys,
+  	'%ArrayProto_values%': Array.prototype.values,
+  	'%AsyncFromSyncIteratorPrototype%': undefined$1,
+  	'%AsyncFunction%': asyncFunction,
+  	'%AsyncFunctionPrototype%':  undefined$1,
+  	'%AsyncGenerator%':  undefined$1,
+  	'%AsyncGeneratorFunction%': asyncGenFunction,
+  	'%AsyncGeneratorPrototype%':  undefined$1,
+  	'%AsyncIteratorPrototype%':  undefined$1,
+  	'%Atomics%': typeof Atomics === 'undefined' ? undefined$1 : Atomics,
+  	'%Boolean%': Boolean,
+  	'%BooleanPrototype%': Boolean.prototype,
+  	'%DataView%': typeof DataView === 'undefined' ? undefined$1 : DataView,
+  	'%DataViewPrototype%': typeof DataView === 'undefined' ? undefined$1 : DataView.prototype,
+  	'%Date%': Date,
+  	'%DatePrototype%': Date.prototype,
+  	'%decodeURI%': decodeURI,
+  	'%decodeURIComponent%': decodeURIComponent,
+  	'%encodeURI%': encodeURI,
+  	'%encodeURIComponent%': encodeURIComponent,
+  	'%Error%': Error,
+  	'%ErrorPrototype%': Error.prototype,
+  	'%eval%': eval, // eslint-disable-line no-eval
+  	'%EvalError%': EvalError,
+  	'%EvalErrorPrototype%': EvalError.prototype,
+  	'%Float32Array%': typeof Float32Array === 'undefined' ? undefined$1 : Float32Array,
+  	'%Float32ArrayPrototype%': typeof Float32Array === 'undefined' ? undefined$1 : Float32Array.prototype,
+  	'%Float64Array%': typeof Float64Array === 'undefined' ? undefined$1 : Float64Array,
+  	'%Float64ArrayPrototype%': typeof Float64Array === 'undefined' ? undefined$1 : Float64Array.prototype,
+  	'%Function%': Function,
+  	'%FunctionPrototype%': Function.prototype,
+  	'%Generator%':  undefined$1,
+  	'%GeneratorFunction%': generatorFunction,
+  	'%GeneratorPrototype%':  undefined$1,
+  	'%Int8Array%': typeof Int8Array === 'undefined' ? undefined$1 : Int8Array,
+  	'%Int8ArrayPrototype%': typeof Int8Array === 'undefined' ? undefined$1 : Int8Array.prototype,
+  	'%Int16Array%': typeof Int16Array === 'undefined' ? undefined$1 : Int16Array,
+  	'%Int16ArrayPrototype%': typeof Int16Array === 'undefined' ? undefined$1 : Int8Array.prototype,
+  	'%Int32Array%': typeof Int32Array === 'undefined' ? undefined$1 : Int32Array,
+  	'%Int32ArrayPrototype%': typeof Int32Array === 'undefined' ? undefined$1 : Int32Array.prototype,
+  	'%isFinite%': isFinite,
+  	'%isNaN%': isNaN,
+  	'%IteratorPrototype%': hasSymbols$1 ? getProto(getProto([][Symbol.iterator]())) : undefined$1,
+  	'%JSON%': typeof JSON === 'object' ? JSON : undefined$1,
+  	'%JSONParse%': typeof JSON === 'object' ? JSON.parse : undefined$1,
+  	'%Map%': typeof Map === 'undefined' ? undefined$1 : Map,
+  	'%MapIteratorPrototype%': typeof Map === 'undefined' || !hasSymbols$1 ? undefined$1 : getProto(new Map()[Symbol.iterator]()),
+  	'%MapPrototype%': typeof Map === 'undefined' ? undefined$1 : Map.prototype,
+  	'%Math%': Math,
+  	'%Number%': Number,
+  	'%NumberPrototype%': Number.prototype,
+  	'%Object%': Object,
+  	'%ObjectPrototype%': Object.prototype,
+  	'%ObjProto_toString%': Object.prototype.toString,
+  	'%ObjProto_valueOf%': Object.prototype.valueOf,
+  	'%parseFloat%': parseFloat,
+  	'%parseInt%': parseInt,
+  	'%Promise%': typeof Promise === 'undefined' ? undefined$1 : Promise,
+  	'%PromisePrototype%': typeof Promise === 'undefined' ? undefined$1 : Promise.prototype,
+  	'%PromiseProto_then%': typeof Promise === 'undefined' ? undefined$1 : Promise.prototype.then,
+  	'%Promise_all%': typeof Promise === 'undefined' ? undefined$1 : Promise.all,
+  	'%Promise_reject%': typeof Promise === 'undefined' ? undefined$1 : Promise.reject,
+  	'%Promise_resolve%': typeof Promise === 'undefined' ? undefined$1 : Promise.resolve,
+  	'%Proxy%': typeof Proxy === 'undefined' ? undefined$1 : Proxy,
+  	'%RangeError%': RangeError,
+  	'%RangeErrorPrototype%': RangeError.prototype,
+  	'%ReferenceError%': ReferenceError,
+  	'%ReferenceErrorPrototype%': ReferenceError.prototype,
+  	'%Reflect%': typeof Reflect === 'undefined' ? undefined$1 : Reflect,
+  	'%RegExp%': RegExp,
+  	'%RegExpPrototype%': RegExp.prototype,
+  	'%Set%': typeof Set === 'undefined' ? undefined$1 : Set,
+  	'%SetIteratorPrototype%': typeof Set === 'undefined' || !hasSymbols$1 ? undefined$1 : getProto(new Set()[Symbol.iterator]()),
+  	'%SetPrototype%': typeof Set === 'undefined' ? undefined$1 : Set.prototype,
+  	'%SharedArrayBuffer%': typeof SharedArrayBuffer === 'undefined' ? undefined$1 : SharedArrayBuffer,
+  	'%SharedArrayBufferPrototype%': typeof SharedArrayBuffer === 'undefined' ? undefined$1 : SharedArrayBuffer.prototype,
+  	'%String%': String,
+  	'%StringIteratorPrototype%': hasSymbols$1 ? getProto(''[Symbol.iterator]()) : undefined$1,
+  	'%StringPrototype%': String.prototype,
+  	'%Symbol%': hasSymbols$1 ? Symbol : undefined$1,
+  	'%SymbolPrototype%': hasSymbols$1 ? Symbol.prototype : undefined$1,
+  	'%SyntaxError%': SyntaxError,
+  	'%SyntaxErrorPrototype%': SyntaxError.prototype,
+  	'%ThrowTypeError%': ThrowTypeError,
+  	'%TypedArray%': TypedArray,
+  	'%TypedArrayPrototype%': TypedArray ? TypedArray.prototype : undefined$1,
+  	'%TypeError%': $TypeError,
+  	'%TypeErrorPrototype%': $TypeError.prototype,
+  	'%Uint8Array%': typeof Uint8Array === 'undefined' ? undefined$1 : Uint8Array,
+  	'%Uint8ArrayPrototype%': typeof Uint8Array === 'undefined' ? undefined$1 : Uint8Array.prototype,
+  	'%Uint8ClampedArray%': typeof Uint8ClampedArray === 'undefined' ? undefined$1 : Uint8ClampedArray,
+  	'%Uint8ClampedArrayPrototype%': typeof Uint8ClampedArray === 'undefined' ? undefined$1 : Uint8ClampedArray.prototype,
+  	'%Uint16Array%': typeof Uint16Array === 'undefined' ? undefined$1 : Uint16Array,
+  	'%Uint16ArrayPrototype%': typeof Uint16Array === 'undefined' ? undefined$1 : Uint16Array.prototype,
+  	'%Uint32Array%': typeof Uint32Array === 'undefined' ? undefined$1 : Uint32Array,
+  	'%Uint32ArrayPrototype%': typeof Uint32Array === 'undefined' ? undefined$1 : Uint32Array.prototype,
+  	'%URIError%': URIError,
+  	'%URIErrorPrototype%': URIError.prototype,
+  	'%WeakMap%': typeof WeakMap === 'undefined' ? undefined$1 : WeakMap,
+  	'%WeakMapPrototype%': typeof WeakMap === 'undefined' ? undefined$1 : WeakMap.prototype,
+  	'%WeakSet%': typeof WeakSet === 'undefined' ? undefined$1 : WeakSet,
+  	'%WeakSetPrototype%': typeof WeakSet === 'undefined' ? undefined$1 : WeakSet.prototype
+  };
+
+
+  var $replace = D__Documents_Projects_myProjects_AE_Scripts_node_modules_functionBind.call(Function.call, String.prototype.replace);
+
+  /* adapted from https://github.com/lodash/lodash/blob/4.17.15/dist/lodash.js#L6735-L6744 */
+  var rePropName = /[^%.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|%$))/g;
+  var reEscapeChar = /\\(\\)?/g; /** Used to match backslashes in property paths. */
+  var stringToPath = function stringToPath(string) {
+  	var result = [];
+  	$replace(string, rePropName, function (match, number, quote, subString) {
+  		result[result.length] = quote ? $replace(subString, reEscapeChar, '$1') : (number || match);
+  	});
+  	return result;
+  };
+  /* end adaptation */
+
+  var getBaseIntrinsic = function getBaseIntrinsic(name, allowMissing) {
+  	if (!(name in INTRINSICS)) {
+  		throw new SyntaxError('intrinsic ' + name + ' does not exist!');
+  	}
+
+  	// istanbul ignore if // hopefully this is impossible to test :-)
+  	if (typeof INTRINSICS[name] === 'undefined' && !allowMissing) {
+  		throw new $TypeError('intrinsic ' + name + ' exists, but is not available. Please file an issue!');
+  	}
+
+  	return INTRINSICS[name];
+  };
+
+  var GetIntrinsic = function GetIntrinsic(name, allowMissing) {
+  	if (typeof name !== 'string' || name.length === 0) {
+  		throw new TypeError('intrinsic name must be a non-empty string');
+  	}
+  	if (arguments.length > 1 && typeof allowMissing !== 'boolean') {
+  		throw new TypeError('"allowMissing" argument must be a boolean');
+  	}
+
+  	var parts = stringToPath(name);
+
+  	var value = getBaseIntrinsic('%' + (parts.length > 0 ? parts[0] : '') + '%', allowMissing);
+  	for (var i = 1; i < parts.length; i += 1) {
+  		if (value != null) {
+  			if ($gOPD && (i + 1) >= parts.length) {
+  				var desc = $gOPD(value, parts[i]);
+  				if (!allowMissing && !(parts[i] in value)) {
+  					throw new $TypeError('base intrinsic for ' + name + ' exists, but the property is not available.');
+  				}
+  				value = desc ? (desc.get || desc.value) : value[parts[i]];
+  			} else {
+  				value = value[parts[i]];
+  			}
+  		}
+  	}
+  	return value;
+  };
+
+  var $Function = GetIntrinsic('%Function%');
+  var $apply = $Function.apply;
+  var $call = $Function.call;
+
+  var callBind = function callBind() {
+  	return D__Documents_Projects_myProjects_AE_Scripts_node_modules_functionBind.apply($call, arguments);
+  };
+
+  var apply = function applyBind() {
+  	return D__Documents_Projects_myProjects_AE_Scripts_node_modules_functionBind.apply($apply, arguments);
+  };
+  callBind.apply = apply;
+
+  var $indexOf = callBind(GetIntrinsic('String.prototype.indexOf'));
+
+  var callBound = function callBoundIntrinsic(name, allowMissing) {
+  	var intrinsic = GetIntrinsic(name, !!allowMissing);
+  	if (typeof intrinsic === 'function' && $indexOf(name, '.prototype.')) {
+  		return callBind(intrinsic);
+  	}
+  	return intrinsic;
+  };
+
+  var $replace$1 = callBound('String.prototype.replace');
+
+  /* eslint-disable no-control-regex */
+  var endWhitespace = /[\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF]*$/;
+  /* eslint-enable no-control-regex */
+
+  var implementation$2 = function trimEnd() {
+  	return $replace$1(this, endWhitespace, '');
+  };
+
+  var polyfill = function getPolyfill() {
+  	if (!String.prototype.trimEnd && !String.prototype.trimRight) {
+  		return implementation$2;
+  	}
+  	var zeroWidthSpace = '\u200b';
+  	var trimmed = zeroWidthSpace.trimEnd ? zeroWidthSpace.trimEnd() : zeroWidthSpace.trimRight();
+  	if (trimmed !== zeroWidthSpace) {
+  		return implementation$2;
+  	}
+  	return String.prototype.trimEnd || String.prototype.trimRight;
+  };
+
+  var shim = function shimTrimEnd() {
+  	var polyfill$1 = polyfill();
+  	D__Documents_Projects_myProjects_AE_Scripts_node_modules_defineProperties(
+  		String.prototype,
+  		{ trimEnd: polyfill$1 },
+  		{ trimEnd: function () { return String.prototype.trimEnd !== polyfill$1; } }
+  	);
+  	return polyfill$1;
+  };
+
+  shim();
+  // for "path-parse"
+  process = {};
+
+  var pathParse = createCommonjsModule(function (module) {
+
+  var isWindows = process.platform === 'win32';
+
+  // Regex to split a windows path into three parts: [*, device, slash,
+  // tail] windows-only
+  var splitDeviceRe =
+      /^([a-zA-Z]:|[\\\/]{2}[^\\\/]+[\\\/]+[^\\\/]+)?([\\\/])?([\s\S]*?)$/;
+
+  // Regex to split the tail part of the above into [*, dir, basename, ext]
+  var splitTailRe =
+      /^([\s\S]*?)((?:\.{1,2}|[^\\\/]+?|)(\.[^.\/\\]*|))(?:[\\\/]*)$/;
+
+  var win32 = {};
+
+  // Function to split a filename into [root, dir, basename, ext]
+  function win32SplitPath(filename) {
+    // Separate device+slash from tail
+    var result = splitDeviceRe.exec(filename),
+        device = (result[1] || '') + (result[2] || ''),
+        tail = result[3] || '';
+    // Split the tail into dir, basename and extension
+    var result2 = splitTailRe.exec(tail),
+        dir = result2[1],
+        basename = result2[2],
+        ext = result2[3];
+    return [device, dir, basename, ext];
+  }
+
+  win32.parse = function(pathString) {
+    if (typeof pathString !== 'string') {
+      throw new TypeError(
+          "Parameter 'pathString' must be a string, not " + typeof pathString
+      );
+    }
+    var allParts = win32SplitPath(pathString);
+    if (!allParts || allParts.length !== 4) {
+      throw new TypeError("Invalid path '" + pathString + "'");
+    }
+    return {
+      root: allParts[0],
+      dir: allParts[0] + allParts[1].slice(0, -1),
+      base: allParts[2],
+      ext: allParts[3],
+      name: allParts[2].slice(0, allParts[2].length - allParts[3].length)
+    };
+  };
+
+
+
+  // Split a filename into [root, dir, basename, ext], unix version
+  // 'root' is just a slash, or nothing.
+  var splitPathRe =
+      /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
+  var posix = {};
+
+
+  function posixSplitPath(filename) {
+    return splitPathRe.exec(filename).slice(1);
+  }
+
+
+  posix.parse = function(pathString) {
+    if (typeof pathString !== 'string') {
+      throw new TypeError(
+          "Parameter 'pathString' must be a string, not " + typeof pathString
+      );
+    }
+    var allParts = posixSplitPath(pathString);
+    if (!allParts || allParts.length !== 4) {
+      throw new TypeError("Invalid path '" + pathString + "'");
+    }
+    allParts[1] = allParts[1] || '';
+    allParts[2] = allParts[2] || '';
+    allParts[3] = allParts[3] || '';
+
+    return {
+      root: allParts[0],
+      dir: allParts[0] + allParts[1].slice(0, -1),
+      base: allParts[2],
+      ext: allParts[3],
+      name: allParts[2].slice(0, allParts[2].length - allParts[3].length)
+    };
+  };
+
+
+  if (isWindows)
+    module.exports = win32.parse;
+  else /* posix */
+    module.exports = posix.parse;
+
+  module.exports.posix = posix.parse;
+  module.exports.win32 = win32.parse;
+  });
+  var pathParse_1 = pathParse.posix;
+  var pathParse_2 = pathParse.win32;
+
+  var times = function (step, callback) {
+      for (var i = 1; i <= step; i++) {
+          if (callback(i))
+              break;
+      }
+  };
+  var isCompItem = function (item) {
+      return item instanceof CompItem;
+  };
+  var isFolderItem = function (item) {
+      return item instanceof FolderItem;
+  };
+  var isFootageItem = function (item) {
+      return item instanceof FootageItem;
+  };
+  var isObject = function (data) {
+      return Object.prototype.toString.call(data) === "[object Object]";
+  };
+
+  var matchSuffixNum = function (str) {
+      return str.match(/[0-9]*$/);
+  };
+  var getMaxSuffixNumItemName = function (matchName, parent, typeChecker) {
+      var maxNum;
+      var maxNumItemName = matchName;
+      times(parent.numItems, function (i) {
+          var item = parent.item(i);
+          if (!typeChecker(item))
+              return;
+          var regexp = new RegExp("^" + matchName + "\\s*[0-9]*$");
+          if (!regexp.test(item.name))
+              return;
+          var matchArr = matchSuffixNum(item.name);
+          if (!matchArr)
+              return;
+          var suffixStr = matchArr[0];
+          if (suffixStr === "") {
+              maxNum = 0;
+              maxNumItemName = matchName;
+              return;
+          }
+          var suffixNum = parseInt(suffixStr, 10);
+          if (maxNum === undefined) {
+              maxNum = suffixNum;
+              maxNumItemName = item.name;
+              return;
+          }
+          if (suffixNum > maxNum) {
+              maxNum = suffixNum;
+              maxNumItemName = item.name;
+          }
+      });
+      return maxNumItemName;
+  };
+  var createFoldersWithSuffixNum = function (name, parent, number) {
+      var match = matchSuffixNum(name);
+      if (!match)
+          return;
+      var newFolders = [];
+      times(number, function (i) {
+          var newFolderName;
+          if (match[0] === "") {
+              newFolderName = name + i;
+          }
+          else {
+              var baseName = name.slice(0, match.index);
+              var suffixNumStr = match[0];
+              var suffixNum = parseInt(suffixNumStr, 10);
+              newFolderName = baseName + (suffixNum + i);
+          }
+          newFolders.push(parent.items.addFolder(newFolderName));
+      });
+      return newFolders;
+  };
+  var createFolderStruct = function (root) {
+      var struct = {};
+      times(root.numItems, function (i) {
+          var item = root.item(i);
+          if (isFolderItem(item)) {
+              struct[item.name] = createFolderStruct(item);
+          }
+          else if (isCompItem(item)) {
+              struct[item.name] = item;
+          }
+          else if (isFootageItem(item)) {
+              struct[item.name] = item;
+          }
+      });
+      return struct;
+  };
+  var createFolderFromStruct = function (parent, struct, callbacks) {
+      if (callbacks === void 0) { callbacks = {}; }
+      Object.keys(struct).forEach(function (key) {
+          var item = struct[key];
+          if (item instanceof CompItem || item instanceof FootageItem) {
+              callbacks.av && callbacks.av(parent, item);
+          }
+          else if (isObject(item)) {
+              var newFolder = parent.items.addFolder(key);
+              createFolderFromStruct(newFolder, item, callbacks);
+              callbacks.folder && callbacks.folder(newFolder);
+          }
+      });
+  };
+  var findItem = function (name, parent) {
+      var item;
+      times(parent.numItems, function (i) {
+          var current = parent.item(i);
+          if (current.name === name) {
+              item = current;
+              return true;
+          }
+      });
+      return item;
+  };
+  var getItemFromPathArr = function (pathArr, parent) {
+      var isTarget = pathArr.length === 1;
+      var item = findItem(pathArr[0], parent);
+      if (!item) {
+          return;
+      }
+      if (isTarget) {
+          return item;
+      }
+      else {
+          if (isFolderItem(item)) {
+              return getItemFromPathArr(pathArr.slice(1), item);
+          }
+          else {
+              return;
+          }
+      }
+  };
+  var existInsideFolder = function (item, root, callback) {
+      var parent = item.parentFolder;
+      if (parent === root) {
+          return true;
+      }
+      else if (parent === app.project.rootFolder) {
+          return false;
+      }
+      else {
+          callback && callback(parent);
+          return existInsideFolder(parent, root);
+      }
+  };
+  var replaceLayerIfInside = function (comp, sourceFolder, targetFolder, callbacks) {
+      if (callbacks === void 0) { callbacks = {}; }
+      // new comp's layer iterate
+      times(comp.numLayers, function (i) {
+          var layer = comp.layer(i);
+          if (layer instanceof AVLayer &&
+              (layer.source instanceof CompItem || layer.source instanceof FootageItem)) {
+              if (callbacks.pre && callbacks.pre(layer))
+                  return true;
+              var pathArr_1 = [];
+              // 置き換え前のcompLayerのソースがsourceFolderの中に存在するかどうかをチェック
+              var willReplace = existInsideFolder(layer.source, 
+              // sourceFolder is sourse folder
+              sourceFolder, function (parent) {
+                  pathArr_1.push(parent.name);
+              });
+              if (willReplace) {
+                  pathArr_1.reverse().push(layer.source.name);
+                  // ["parentFolder", "innerFolder", "comp"]
+                  var targetItem = getItemFromPathArr(pathArr_1, targetFolder);
+                  if (!targetItem) {
+                      return;
+                  }
+                  // 作成したコンポジションのレイヤーがフォルダー内のものであれば置き換え
+                  layer.replaceSource(targetItem, false);
+                  callbacks.after && callbacks.after(layer.source, targetItem);
+              }
+          }
+      });
+  };
+
+  var duplicateFolder = (function (sourceFolder, options) {
+      if (options === void 0) { options = {}; }
+      if (!isFolderItem(sourceFolder))
+          return undefined;
+      var copieNum = options.copieNum || 1;
+      var parentFolder = options.parent || sourceFolder.parentFolder;
+      var newFolders;
+      var name = sourceFolder.name;
+      var baseName;
+      if (options.name) {
+          baseName = options.name;
+      }
+      else {
+          var match = matchSuffixNum(name);
+          if (!match)
+              return;
+          baseName = name.slice(0, match.index).trimEnd();
+      }
+      var maxNumItemName = getMaxSuffixNumItemName(baseName, parentFolder, isFolderItem);
+      //  || sourceFolder;
+      newFolders = createFoldersWithSuffixNum(maxNumItemName, parentFolder, copieNum);
+      if (!newFolders)
+          return;
+      var struct = createFolderStruct(sourceFolder);
+      app.beginUndoGroup("Duplicate Folder");
+      // new folderList iterate
+      newFolders.forEach(function (newFolder) {
+          var compList = [];
+          createFolderFromStruct(newFolder, struct, {
+              av: function (parent, item) {
+                  if (isCompItem(item)) {
+                      var newItem = item.duplicate();
+                      newItem.parentFolder = parent;
+                      newItem.name = item.name;
+                      compList.push(newItem);
+                  }
+                  else if (isFootageItem(item)) {
+                      var file = item.file;
+                      if (!file)
+                          return;
+                      var importOptions = new ImportOptions(file);
+                      importOptions.sequence = !item.mainSource.isStill;
+                      var newItem = app.project.importFile(importOptions);
+                      newItem.parentFolder = parent;
+                      newItem.name = item.name;
+                  }
+              }
+          });
+          // Memoization
+          var memoSourceList = [];
+          var memoTargetList = [];
+          compList.forEach(function (comp) {
+              replaceLayerIfInside(comp, sourceFolder, newFolder, {
+                  pre: function (sourceLayer) {
+                      memoSourceList.forEach(function (item, index) {
+                          if (sourceLayer.source === item) {
+                              sourceLayer.replaceSource(memoTargetList[index], false);
+                              return true;
+                          }
+                      });
+                  },
+                  after: function (sourceItem, targetItem) {
+                      var length = memoSourceList.length;
+                      memoSourceList[length] = sourceItem;
+                      memoTargetList[length] = targetItem;
+                  }
+              });
+          });
+          app.endUndoGroup();
+      });
+      return newFolders;
+  });
+
+  var func = function () {
+      duplicateFolder(app.project.item(2), {
+          name: "test",
+          copieNum: 1,
+          parent: app.project.item(10)
+      });
+  };
+  func();
+  // alert(getSelectedItemIndex().toString());
 
 }());
+//# sourceMappingURL=bundle.jsx.map

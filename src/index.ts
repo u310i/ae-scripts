@@ -1,18 +1,24 @@
-import "extendscript-es5-shim-ts";
-import { funcA } from "./utils";
+import "./init";
+import {
+  getSelectedItemIndex,
+  importFiles,
+  deepCompCopy,
+  isCompItem,
+  isFolderItem,
+  isFootageItem,
+  isObject,
+  times
+} from "./utils/utils";
 
-const func = (str: String): void => {
-  const arr = ["foo", "bar"];
-  arr.forEach(i => {
-    alert(i);
+import duplicateFolder from "./utils/duplicateFolder/index";
+
+const func = (): void => {
+  duplicateFolder(app.project.item(2) as FolderItem, {
+    name: "test",
+    copieNum: 1,
+    parent: app.project.item(10) as FolderItem
   });
-  // const obj = {
-  //   foo: "foo",
-  //   bar: "bar"
-  // };
-  // const { foo, ...bbb } = obj;
-  // alert(foo);
-  alert(str + ": You just sent an alert to After Effects");
 };
 
-func(funcA());
+func();
+// alert(getSelectedItemIndex().toString());

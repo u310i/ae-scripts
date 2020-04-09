@@ -5,13 +5,19 @@
   "main": "index.js",
   "dependencies": {},
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^4.0.0",
-    "extendscript-es5-shim-ts": "0.0.1",
+    "@types/path-parse": "^1.0.19",
+    "extendscript-es5-shim": "^0.2.0",
+    "extendscript-es6-shim": "^0.2.0",
+    "path-parse": "^1.0.6",
     "rollup": "^2.3.2",
+    "string.prototype.trimend": "github:es-shims/String.prototype.trimEnd",
     "tslib": "^1.11.1",
     "types-for-adobe": "^1.6.1",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "zero-fill": "^2.2.3"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
