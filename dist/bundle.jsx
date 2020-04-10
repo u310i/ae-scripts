@@ -1798,6 +1798,37 @@
   var pathParse_1 = pathParse.posix;
   var pathParse_2 = pathParse.win32;
 
+  var findItem = function (name, parent) {
+      if (parent === void 0) { parent = app.project.rootFolder; }
+      var item;
+      times(parent.numItems, function (i) {
+          var current = parent.item(i);
+          if (current.name === name) {
+              item = current;
+              return true;
+          }
+      });
+      return item;
+  };
+  var getItemFromPathArr = function (pathArr, parent) {
+      if (parent === void 0) { parent = app.project.rootFolder; }
+      var isTarget = pathArr.length === 1;
+      var item = findItem(pathArr[0], parent);
+      if (!item) {
+          return;
+      }
+      if (isTarget) {
+          return item;
+      }
+      else {
+          if (isFolderItem(item)) {
+              return getItemFromPathArr(pathArr.slice(1), item);
+          }
+          else {
+              return;
+          }
+      }
+  };
   var times = function (step, callback) {
       for (var i = 1; i <= step; i++) {
           if (callback(i))
@@ -1815,6 +1846,10 @@
   };
   var isObject = function (data) {
       return Object.prototype.toString.call(data) === "[object Object]";
+  };
+
+  var getFolderFromPathArr = function (pathArr, parent) {
+      return getItemFromPathArr(pathArr, parent);
   };
 
   var matchSuffixNum = function (str) {
@@ -1879,10 +1914,7 @@
           if (isFolderItem(item)) {
               struct[item.name] = createFolderStruct(item);
           }
-          else if (isCompItem(item)) {
-              struct[item.name] = item;
-          }
-          else if (isFootageItem(item)) {
+          else {
               struct[item.name] = item;
           }
       });
@@ -1892,44 +1924,15 @@
       if (callbacks === void 0) { callbacks = {}; }
       Object.keys(struct).forEach(function (key) {
           var item = struct[key];
-          if (item instanceof CompItem || item instanceof FootageItem) {
+          if (!(item instanceof FolderItem) && !isObject(item)) {
               callbacks.av && callbacks.av(parent, item);
           }
-          else if (isObject(item)) {
+          else {
               var newFolder = parent.items.addFolder(key);
               createFolderFromStruct(newFolder, item, callbacks);
               callbacks.folder && callbacks.folder(newFolder);
           }
       });
-  };
-  var findItem = function (name, parent) {
-      var item;
-      times(parent.numItems, function (i) {
-          var current = parent.item(i);
-          if (current.name === name) {
-              item = current;
-              return true;
-          }
-      });
-      return item;
-  };
-  var getItemFromPathArr = function (pathArr, parent) {
-      var isTarget = pathArr.length === 1;
-      var item = findItem(pathArr[0], parent);
-      if (!item) {
-          return;
-      }
-      if (isTarget) {
-          return item;
-      }
-      else {
-          if (isFolderItem(item)) {
-              return getItemFromPathArr(pathArr.slice(1), item);
-          }
-          else {
-              return;
-          }
-      }
   };
   var existInsideFolder = function (item, root, callback) {
       var parent = item.parentFolder;
@@ -1994,7 +1997,6 @@
           baseName = name.slice(0, match.index).trimEnd();
       }
       var maxNumItemName = getMaxSuffixNumItemName(baseName, parentFolder, isFolderItem);
-      //  || sourceFolder;
       newFolders = createFoldersWithSuffixNum(maxNumItemName, parentFolder, copieNum);
       if (!newFolders)
           return;
@@ -2005,22 +2007,35 @@
           var compList = [];
           createFolderFromStruct(newFolder, struct, {
               av: function (parent, item) {
+                  var newItem;
                   if (isCompItem(item)) {
-                      var newItem = item.duplicate();
-                      newItem.parentFolder = parent;
-                      newItem.name = item.name;
+                      newItem = item.duplicate();
                       compList.push(newItem);
                   }
-                  else if (isFootageItem(item)) {
-                      var file = item.file;
-                      if (!file)
-                          return;
-                      var importOptions = new ImportOptions(file);
-                      importOptions.sequence = !item.mainSource.isStill;
-                      var newItem = app.project.importFile(importOptions);
-                      newItem.parentFolder = parent;
-                      newItem.name = item.name;
+                  if (isFootageItem(item)) {
+                      if (item.mainSource instanceof FileSource) {
+                          var file = item.file;
+                          if (!file)
+                              return;
+                          var importOptions = new ImportOptions(file);
+                          importOptions.sequence = !item.mainSource.isStill;
+                          newItem = app.project.importFile(importOptions);
+                      }
+                      if (item.mainSource instanceof SolidSource) {
+                          var solidData = {
+                              color: item.mainSource.color,
+                              name: item.name,
+                              width: item.width,
+                              height: item.height
+                          };
+                          newItem = app.project.importPlaceholder("placeholderTempName", 4, 4, 30.0, 1.0);
+                          newItem.replaceWithSolid(solidData.color, "solidTempName", solidData.width, solidData.height, 1.0);
+                      }
                   }
+                  if (!newItem)
+                      return;
+                  newItem.parentFolder = parent;
+                  newItem.name = item.name;
               }
           });
           // Memoization
@@ -2049,14 +2064,15 @@
   });
 
   var func = function () {
-      duplicateFolder(app.project.item(2), {
+      duplicateFolder(getFolderFromPathArr(["aaa", "foo1"]), {
           name: "test",
-          copieNum: 1,
-          parent: app.project.item(10)
+          copieNum: 3,
+          parent: getFolderFromPathArr(["bbb"])
       });
   };
   func();
   // alert(getSelectedItemIndex().toString());
+  // const item = getItemFromPathArr(["aaa", "foo1", "solid1"]);
 
 }());
 //# sourceMappingURL=bundle.jsx.map

@@ -15,6 +15,41 @@ export const getSelectedItemIndex = (): number => {
   return index;
 };
 
+export const findItem = (
+  name: string,
+  parent: FolderItem = app.project.rootFolder
+): Item | undefined => {
+  let item: Item | undefined;
+  times(parent.numItems, i => {
+    const current = parent.item(i);
+    if (current.name === name) {
+      item = current;
+      return true;
+    }
+  });
+  return item;
+};
+
+export const getItemFromPathArr = (
+  pathArr: string[],
+  parent: FolderItem = app.project.rootFolder
+): Item | undefined => {
+  const isTarget = pathArr.length === 1;
+  const item = findItem(pathArr[0], parent);
+  if (!item) {
+    return;
+  }
+  if (isTarget) {
+    return item;
+  } else {
+    if (isFolderItem(item)) {
+      return getItemFromPathArr(pathArr.slice(1), item);
+    } else {
+      return;
+    }
+  }
+};
+
 // const importFileList = importFiles("foo/images");
 export const importFiles = (
   folderName: string,

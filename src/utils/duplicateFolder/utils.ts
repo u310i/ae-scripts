@@ -3,7 +3,9 @@ import {
   isFolderItem,
   isFootageItem,
   isObject,
-  times
+  times,
+  findItem,
+  getItemFromPathArr
 } from "../utils";
 
 export const matchSuffixNum = (str: string): RegExpMatchArray | null => {
@@ -76,7 +78,7 @@ export const createFoldersWithSuffixNum = (
 };
 
 type FolderStructType = {
-  [key: string]: CompItem | FootageItem | FolderStructType;
+  [key: string]: Item | FolderStructType;
 };
 
 export const createFolderStruct = (root: FolderItem): FolderStructType => {
@@ -85,9 +87,7 @@ export const createFolderStruct = (root: FolderItem): FolderStructType => {
     const item = root.item(i);
     if (isFolderItem(item)) {
       struct[item.name] = createFolderStruct(item);
-    } else if (isCompItem(item)) {
-      struct[item.name] = item;
-    } else if (isFootageItem(item)) {
+    } else {
       struct[item.name] = item;
     }
   });
@@ -98,55 +98,20 @@ export const createFolderFromStruct = (
   parent: FolderItem,
   struct: FolderStructType,
   callbacks: {
-    av?: (parent: FolderItem, item: CompItem | FootageItem) => void;
+    av?: (parent: FolderItem, item: Item) => void;
     folder?: (parent: FolderItem) => void;
   } = {}
 ): void => {
   Object.keys(struct).forEach(key => {
     const item = struct[key];
-    if (item instanceof CompItem || item instanceof FootageItem) {
-      callbacks.av && callbacks.av(parent, item);
-    } else if (isObject(item)) {
+    if (!(item instanceof FolderItem) && !isObject(item)) {
+      callbacks.av && callbacks.av(parent, item as any);
+    } else {
       const newFolder = parent.items.addFolder(key);
-      createFolderFromStruct(newFolder, item, callbacks);
+      createFolderFromStruct(newFolder, item as any, callbacks);
       callbacks.folder && callbacks.folder(newFolder);
     }
   });
-};
-
-export const findItem = (
-  name: string,
-  parent: FolderItem
-): Item | undefined => {
-  let item: Item | undefined;
-  times(parent.numItems, i => {
-    const current = parent.item(i);
-    if (current.name === name) {
-      item = current;
-      return true;
-    }
-  });
-  return item;
-};
-
-export const getItemFromPathArr = (
-  pathArr: string[],
-  parent: FolderItem
-): Item | undefined => {
-  const isTarget = pathArr.length === 1;
-  const item = findItem(pathArr[0], parent);
-  if (!item) {
-    return;
-  }
-  if (isTarget) {
-    return item;
-  } else {
-    if (isFolderItem(item)) {
-      return getItemFromPathArr(pathArr.slice(1), item);
-    } else {
-      return;
-    }
-  }
 };
 
 export const existInsideFolder = (
@@ -171,10 +136,7 @@ export const replaceLayerIfInside = (
   targetFolder: FolderItem,
   callbacks: {
     pre?: (sourceLayer: AVLayer) => boolean | void;
-    after?: (
-      sourceItem: CompItem | FootageItem,
-      targetItem: CompItem | FootageItem
-    ) => void;
+    after?: (sourceItem: Item, targetItem: Item) => void;
   } = {}
 ): void => {
   // new comp's layer iterate

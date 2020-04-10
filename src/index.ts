@@ -7,18 +7,24 @@ import {
   isFolderItem,
   isFootageItem,
   isObject,
-  times
+  times,
+  getItemFromPathArr
 } from "./utils/utils";
 
-import duplicateFolder from "./utils/duplicateFolder/index";
+import { findFolder, getFolderFromPathArr } from "./utils/debug";
+
+import duplicateFolder from "./utils/duplicateFolder/duplicateFolder";
 
 const func = (): void => {
-  duplicateFolder(app.project.item(2) as FolderItem, {
+  duplicateFolder(getFolderFromPathArr(["aaa", "foo1"]), {
     name: "test",
-    copieNum: 1,
-    parent: app.project.item(10) as FolderItem
+    copieNum: 3,
+    parent: getFolderFromPathArr(["bbb"])
   });
 };
 
 func();
+
 // alert(getSelectedItemIndex().toString());
+
+// const item = getItemFromPathArr(["aaa", "foo1", "solid1"]);

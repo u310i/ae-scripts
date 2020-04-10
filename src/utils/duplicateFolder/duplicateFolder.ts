@@ -1,5 +1,10 @@
 import { isCompItem, isFolderItem, isFootageItem } from "../utils";
 
+// duplicateFolder(app.project.item(2) as FolderItem, {
+//   name: "test",
+//   copieNum: 1,
+//   parent: app.project.item(10) as FolderItem
+// });
 import {
   matchSuffixNum,
   getMaxSuffixNumItemName,
@@ -37,7 +42,6 @@ export default (
     parentFolder,
     isFolderItem
   );
-  //  || sourceFolder;
 
   newFolders = createFoldersWithSuffixNum(
     maxNumItemName,
@@ -55,26 +59,52 @@ export default (
     const compList: CompItem[] = [];
     createFolderFromStruct(newFolder, struct, {
       av: (parent, item) => {
+        let newItem;
         if (isCompItem(item)) {
-          const newItem = item.duplicate();
-          newItem.parentFolder = parent;
-          newItem.name = item.name;
+          newItem = item.duplicate();
           compList.push(newItem);
-        } else if (isFootageItem(item)) {
-          const file = item.file;
-          if (!file) return;
-          const importOptions = new ImportOptions(file);
-          importOptions.sequence = !item.mainSource.isStill;
-          const newItem = app.project.importFile(importOptions) as FootageItem;
-          newItem.parentFolder = parent;
-          newItem.name = item.name;
         }
+        if (isFootageItem(item)) {
+          if (item.mainSource instanceof FileSource) {
+            const file = item.file;
+            if (!file) return;
+            const importOptions = new ImportOptions(file);
+            importOptions.sequence = !item.mainSource.isStill;
+            newItem = app.project.importFile(importOptions) as FootageItem;
+          }
+          if (item.mainSource instanceof SolidSource) {
+            const solidData = {
+              color: item.mainSource.color,
+              name: item.name,
+              width: item.width,
+              height: item.height
+            };
+            newItem = app.project.importPlaceholder(
+              "placeholderTempName",
+              4,
+              4,
+              30.0,
+              1.0
+            );
+            newItem.replaceWithSolid(
+              solidData.color,
+              "solidTempName",
+              solidData.width,
+              solidData.height,
+              1.0
+            );
+          }
+        }
+
+        if (!newItem) return;
+        newItem.parentFolder = parent;
+        newItem.name = item.name;
       }
     });
 
     // Memoization
-    const memoSourceList: Array<CompItem | FootageItem> = [];
-    const memoTargetList: Array<CompItem | FootageItem> = [];
+    const memoSourceList: Array<AVItem> = [];
+    const memoTargetList: Array<AVItem> = [];
     compList.forEach(comp => {
       replaceLayerIfInside(comp, sourceFolder, newFolder, {
         pre: sourceLayer => {
@@ -87,8 +117,8 @@ export default (
         },
         after: (sourceItem, targetItem) => {
           const length = memoSourceList.length;
-          memoSourceList[length] = sourceItem;
-          memoTargetList[length] = targetItem;
+          memoSourceList[length] = sourceItem as any;
+          memoTargetList[length] = targetItem as any;
         }
       });
     });
