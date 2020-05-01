@@ -1,2 +1,10 @@
-import "./find";
-import "./findIndex";
+import "./forEach";
+// import "./find";
+// import "./findIndex";
+import "./map";
+import "./some";
+import "./filter";
+import "./indexOf";
+import "./isArray";
+import "./every";
+import "jspolyfill-array.prototype.find";

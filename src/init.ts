@@ -1,9 +1,19 @@
-import "extendscript-es5-shim";
-import "extendscript-es6-shim";
+// import "date-polyfill";
 import "./polyfill";
-import trimEndShim from "string.prototype.trimend/shim";
+// import "airbnb-js-shims";
+import log from "./utils/log";
+import fileSys from "./utils/fileSys";
 
-trimEndShim();
+$L = {
+  error: log.writeError
+};
 
-// for "path-parse"
-process = {} as NodeJS.Process;
+$I = {
+  undo: false
+};
+
+fileSys.deleteFile("init_log.txt");
+fileSys.deleteFile("log.txt");
+log.writeInit();
+
+// app.saveProjectOnCrash = false

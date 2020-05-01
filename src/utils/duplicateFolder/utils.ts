@@ -1,12 +1,15 @@
+import { times } from "../utils";
+import { getItems, getLayers } from "../getEntity";
+import { getItemAncestorsName } from "../getEntityWithPath";
+import { getItemWithPathArray } from "../getEntityWithPathArray";
+import { createFolderItem } from "../item";
 import {
   isCompItem,
   isFolderItem,
   isFootageItem,
-  isObject,
-  times,
-  findItem,
-  getItemFromPathArr
-} from "../utils";
+  isAVLayer,
+  isObject
+} from "../typeCheck";
 
 export const matchSuffixNum = (str: string): RegExpMatchArray | null => {
   return str.match(/[0-9]*$/);
@@ -20,16 +23,20 @@ export const getMaxSuffixNumItemName = (
   let maxNum: number | undefined;
   let maxNumItemName: string | undefined = matchName;
 
-  times(parent.numItems, i => {
-    const item = parent.item(i);
-
+  getItems(parent).forEach(item => {
     if (!typeChecker(item)) return;
 
     const regexp = new RegExp("^" + matchName + "\\s*[0-9]*$");
-    if (!regexp.test(item.name)) return;
+    if (!regexp.test(item.name)) {
+      $L.error($.line, "getMaxSuffixNumItemName");
+      return;
+    }
 
     const matchArr = matchSuffixNum(item.name);
-    if (!matchArr) return;
+    if (!matchArr) {
+      $L.error($.line, "getMaxSuffixNumItemName");
+      return;
+    }
 
     const suffixStr = matchArr[0];
     if (suffixStr === "") {
@@ -56,41 +63,68 @@ export const getMaxSuffixNumItemName = (
 export const createFoldersWithSuffixNum = (
   name: string,
   parent: FolderItem,
-  number: number
+  number: number,
+  suffix: boolean = true
 ): FolderItem[] | undefined => {
   const match = matchSuffixNum(name);
-  if (!match) return;
+  if (!match) {
+    $L.error($.line, "createFoldersWithSuffixNum");
+    return;
+  }
 
   const newFolders: FolderItem[] = [];
   times(number, i => {
     let newFolderName: string;
     if (match[0] === "") {
-      newFolderName = name + i;
+      newFolderName = suffix ? name + i : name;
     } else {
       const baseName = name.slice(0, match.index);
       const suffixNumStr = match[0];
       const suffixNum = parseInt(suffixNumStr, 10);
-      newFolderName = baseName + (suffixNum + i);
+      newFolderName = suffix ? baseName + (suffixNum + i) : baseName;
     }
-    newFolders.push(parent.items.addFolder(newFolderName));
+    newFolders.push(createFolderItem(parent, newFolderName));
   });
   return newFolders;
 };
 
 type FolderStructType = {
-  [key: string]: Item | FolderStructType;
+  [key: string]: CompItem | FootageItem | FolderStructType;
 };
 
 export const createFolderStruct = (root: FolderItem): FolderStructType => {
   const struct: FolderStructType = {};
-  times(root.numItems, i => {
-    const item = root.item(i);
+
+  getItems(root).forEach(item => {
     if (isFolderItem(item)) {
       struct[item.name] = createFolderStruct(item);
     } else {
       struct[item.name] = item;
     }
   });
+
+  return struct;
+};
+
+type FolderStructTypeTest = {
+  [key: string]: string | FolderStructTypeTest;
+};
+export const createFolderStructTest = (
+  root: FolderItem
+): FolderStructTypeTest => {
+  const struct: FolderStructTypeTest = {};
+  getItems(root).forEach(item => {
+    if (isFolderItem(item)) {
+      struct[item.name] = createFolderStructTest(item);
+    } else {
+      struct[item.name] = isCompItem(item)
+        ? "comp"
+        : isFootageItem(item)
+        ? "footage"
+        : "err";
+    }
+  });
+
   return struct;
 };
 
@@ -104,73 +138,55 @@ export const createFolderFromStruct = (
 ): void => {
   Object.keys(struct).forEach(key => {
     const item = struct[key];
-    if (!(item instanceof FolderItem) && !isObject(item)) {
+    if (!isFolderItem(item) && !isObject(item)) {
       callbacks.av && callbacks.av(parent, item as any);
     } else {
-      const newFolder = parent.items.addFolder(key);
+      const newFolder = createFolderItem(parent, key);
       createFolderFromStruct(newFolder, item as any, callbacks);
       callbacks.folder && callbacks.folder(newFolder);
     }
   });
 };
 
-export const existInsideFolder = (
-  item: Item,
-  root: FolderItem,
-  callback?: (parent: FolderItem) => void
-): boolean => {
-  const parent = item.parentFolder;
-  if (parent === root) {
-    return true;
-  } else if (parent === app.project.rootFolder) {
-    return false;
-  } else {
-    callback && callback(parent);
-    return existInsideFolder(parent, root);
-  }
-};
-
-export const replaceLayerIfInside = (
+type AVItem = CompItem | FootageItem;
+export const replaceLayerIfInsideTarget = (
   comp: CompItem,
   sourceFolder: FolderItem,
   targetFolder: FolderItem,
   callbacks: {
     pre?: (sourceLayer: AVLayer) => boolean | void;
-    after?: (sourceItem: Item, targetItem: Item) => void;
+    after?: (sourceItem: AVItem, newSource: AVItem) => void;
   } = {}
 ): void => {
   // new comp's layer iterate
-  times(comp.numLayers, i => {
-    const layer = comp.layer(i);
+  getLayers(comp).forEach(layer => {
     if (
-      layer instanceof AVLayer &&
-      (layer.source instanceof CompItem || layer.source instanceof FootageItem)
+      isAVLayer(layer) &&
+      (isCompItem(layer.source) || isFootageItem(layer.source))
     ) {
-      if (callbacks.pre && callbacks.pre(layer)) return true;
-
-      const pathArr: string[] = [];
-      // 置き換え前のcompLayerのソースがsourceFolderの中に存在するかどうかをチェック
-      const willReplace = existInsideFolder(
+      if (callbacks.pre && callbacks.pre(layer)) {
+        return;
+      }
+      const itemAncestorsNameList = getItemAncestorsName(
         layer.source,
-        // sourceFolder is sourse folder
-        sourceFolder,
-        parent => {
-          pathArr.push(parent.name);
-        }
+        sourceFolder
       );
-      if (willReplace) {
-        pathArr.reverse().push(layer.source.name);
-        // ["parentFolder", "innerFolder", "comp"]
-        const targetItem = getItemFromPathArr(pathArr, targetFolder) as
-          | CompItem
-          | FootageItem;
-        if (!targetItem) {
+
+      if (itemAncestorsNameList) {
+        itemAncestorsNameList.push(layer.source.name);
+        // alert(itemAncestorsNameList.join(" / "));
+        const newSource = getItemWithPathArray(
+          itemAncestorsNameList,
+          targetFolder
+        ) as AVItem;
+        if (!newSource) {
+          $L.error($.line, "replaceLayerIfInsideTarget / not found newSource");
           return;
         }
-        // 作成したコンポジションのレイヤーがフォルダー内のものであれば置き換え
-        layer.replaceSource(targetItem, false);
 
-        callbacks.after && callbacks.after(layer.source, targetItem);
+        callbacks.after && callbacks.after(layer.source, newSource);
+        // 作成したコンポジションのレイヤーがフォルダー内のものであれば置き換え
+        layer.replaceSource(newSource, false);
       }
     }
   });
