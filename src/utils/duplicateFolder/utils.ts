@@ -1,4 +1,4 @@
-import { times } from "../utils";
+import { times } from "../general";
 import { getItems, getLayers } from "../getEntity";
 import { getItemAncestorsName } from "../getEntityWithPath";
 import { getItemWithPathArray } from "../getEntityWithPathArray";
@@ -10,6 +10,7 @@ import {
   isAVLayer,
   isObject
 } from "../typeCheck";
+import { FolderStructType } from "../item";
 
 export const matchSuffixNum = (str: string): RegExpMatchArray | null => {
   return str.match(/[0-9]*$/);
@@ -62,15 +63,22 @@ export const getMaxSuffixNumItemName = (
 
 export const createFoldersWithSuffixNum = (
   name: string,
-  parent: FolderItem,
-  number: number,
-  suffix: boolean = true
+  options: {
+    parent?: FolderItem;
+    number?: number;
+    suffix?: boolean;
+    comment?: string;
+  } = {}
 ): FolderItem[] | undefined => {
   const match = matchSuffixNum(name);
   if (!match) {
     $L.error($.line, "createFoldersWithSuffixNum");
     return;
   }
+  const parent = options.parent || app.project.rootFolder;
+  const number = options.number || 1;
+  const suffix = options.suffix || true;
+  const comment = options.comment || "";
 
   const newFolders: FolderItem[] = [];
   times(number, i => {
@@ -83,49 +91,11 @@ export const createFoldersWithSuffixNum = (
       const suffixNum = parseInt(suffixNumStr, 10);
       newFolderName = suffix ? baseName + (suffixNum + i) : baseName;
     }
-    newFolders.push(createFolderItem(parent, newFolderName));
+    const newFolder = createFolderItem(parent, newFolderName);
+    if (comment) newFolder.comment = comment;
+    newFolders.push(newFolder);
   });
   return newFolders;
-};
-
-type FolderStructType = {
-  [key: string]: CompItem | FootageItem | FolderStructType;
-};
-
-export const createFolderStruct = (root: FolderItem): FolderStructType => {
-  const struct: FolderStructType = {};
-
-  getItems(root).forEach(item => {
-    if (isFolderItem(item)) {
-      struct[item.name] = createFolderStruct(item);
-    } else {
-      struct[item.name] = item;
-    }
-  });
-
-  return struct;
-};
-
-type FolderStructTypeTest = {
-  [key: string]: string | FolderStructTypeTest;
-};
-export const createFolderStructTest = (
-  root: FolderItem
-): FolderStructTypeTest => {
-  const struct: FolderStructTypeTest = {};
-  getItems(root).forEach(item => {
-    if (isFolderItem(item)) {
-      struct[item.name] = createFolderStructTest(item);
-    } else {
-      struct[item.name] = isCompItem(item)
-        ? "comp"
-        : isFootageItem(item)
-        ? "footage"
-        : "err";
-    }
-  });
-
-  return struct;
 };
 
 export const createFolderFromStruct = (

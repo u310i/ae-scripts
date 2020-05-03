@@ -1,11 +1,13 @@
-import "./init.ts";
+import "./preProcess.ts";
+import postProcess from "./postProcess";
 import { alertType } from "./utils/debug";
-import { times } from "./utils/utils";
+import { times } from "./utils/general";
 import { sequenceLayers } from "./utils/layer";
 import {
   findItemWithName,
   findLayerWithName,
-  findPropertyWithName
+  findPropertyWithName,
+  findCompItemWithName
 } from "./utils/getEntity";
 import { getSomethingWithPath } from "./utils/getEntityWithPath";
 import {
@@ -16,20 +18,37 @@ import {
   isFileSource,
   isProperty
 } from "./utils/typeCheck";
-import fileSys, {
-  importFilesWithName,
-  importFile,
-  importFileWithName
+import {
+  importFSFilesWithName,
+  importFSFile,
+  importFSFileWithName,
+  getFSPath,
+  getFSFile
 } from "./utils/fileSys";
 import setMaterials from "./utils/setMaterials";
 import duplicateFolder from "./utils/duplicateFolder";
 import { genFade } from "./utils/keyframe";
-import initGenStruct from "./utils/initGenStruct";
+import initGenStruct from "./utils/initStruct";
 import struct from "./struct";
 import constants from "./constants";
+import { createFolderStruct, visualizeStruct } from "./utils/item";
+import {
+  getRQItemStatus,
+  RQItemStatusKeys,
+  addRenderQueue
+} from "./utils/render";
 
+const aerenderPath = `/c/Program\ Files/Adobe/Adobe\ After\ Effects\ 2020/Support\ Files/aerender`;
+// 'C:\Program Files\Adobe\Adobe After Effects 2020\Support Files\aerender' -help
+// & 'C:\Program Files\Adobe\Adobe After Effects 2020\Support Files\aerender' -project 'D:\Documents\Projects\myProjects\AE_Scripts\dist\testInitFolderStruct.aep'
 const fn = () => {
-  initGenStruct(struct);
+  // initGenStruct(struct);
+
+  const renderComp = findCompItemWithName("$root");
+  if (!renderComp) return;
+  addRenderQueue(renderComp);
+
+  postProcess(renderComp);
 };
 
 fn();

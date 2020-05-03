@@ -1,6 +1,6 @@
-import {} from "./utils";
+import {} from "./general";
 import {} from "./getEntity";
-import fileSys from "./fileSys";
+import { isFSFile, isFSFolder } from "./fileSys";
 import {
   // Item
   isAnyItem,
@@ -39,6 +39,7 @@ import {
   isString,
   isBoolean
 } from "./typeCheck";
+import { getRQItemStatus } from "./render";
 
 export const alertType = (value: any): void => {
   if (isUndefined(value) || value === null) {
@@ -83,9 +84,9 @@ export const alertType = (value: any): void => {
   if (isShape(value)) alert("Shape");
   if (isMarkerValue(value)) alert("MarkerValue");
 
-  if (fileSys.isFile(value))
+  if (isFSFile(value))
     alert("File: " + value.name + " exists: " + value.exists);
-  if (fileSys.isFolder(value))
+  if (isFSFolder(value))
     alert("Folder: " + value.name + " exists: " + value.exists);
 };
 
@@ -125,4 +126,22 @@ export const alertSelectedCompPropertyMatchName = (): void => {
     const property = properties && properties[0];
     property && alert(property.name + ": " + property.matchName);
   }
+};
+
+export const alertStatusChanged = (item: RenderQueueItem): void => {
+  alert(getRQItemStatus(item));
+};
+
+export const postRenderAction = (item: RenderQueueItem) => {
+  if (item.outputModule(1).postRenderAction === PostRenderAction.NONE)
+    alert("NONE");
+  if (item.outputModule(1).postRenderAction === PostRenderAction.IMPORT)
+    alert("IMPORT");
+  if (
+    item.outputModule(1).postRenderAction ===
+    PostRenderAction.IMPORT_AND_REPLACE_USAGE
+  )
+    alert("IMPORT_AND_REPLACE_USAGE");
+  if (item.outputModule(1).postRenderAction === PostRenderAction.SET_PROXY)
+    alert("SET_PROXY");
 };

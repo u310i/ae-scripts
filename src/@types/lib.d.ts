@@ -10,3 +10,15 @@ declare var $L: {
 declare var $I: {
   undo: boolean;
 };
+
+interface RenderQueueItem {
+  onStatusChanged: () => void | null;
+}
+
+interface Application {
+  onError: (err: string) => void;
+}
+
+interface Project {
+  expressionEngine: "javascript-1.0" | "extendscript";
+}

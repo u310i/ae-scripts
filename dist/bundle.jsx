@@ -1698,61 +1698,18 @@
     isSecurityPrefSet: isSecurityPrefSet
   };
 
-  var isFile = function isFile(data) {
-    return data instanceof File;
-  };
-
-  var isFolder = function isFolder(data) {
-    return data instanceof Folder;
-  };
-
-  var getPath = function getPath(name) {
+  var getFSPath = function getFSPath(name) {
     return new File($.fileName).path + "/" + encodeURI(name);
   };
-
-  var getFile = function getFile(fileName) {
-    return new File(getPath(fileName));
+  var getFSFile = function getFSFile(fileName) {
+    return new File(getFSPath(fileName));
   };
-
-  var getExistingFile = function getExistingFile(fileName) {
-    var file = getFile(fileName);
-
-    if (!file.exists) {
-      $L.error($.line, "getFile / File is not exists / name: ".concat(fileName));
-      return null;
-    }
-
-    return file;
-  };
-
-  var getFolder = function getFolder(folderName) {
-    return new Folder(getPath(folderName));
-  };
-
-  var getExistingFolder = function getExistingFolder(folderName) {
-    var folder = getFolder(folderName);
-
-    if (!folder.exists) {
-      $L.error($.line, "getFolder / Folder is not exists / name: ".concat(folderName));
-      return null;
-    }
-
-    return folder;
-  };
-
-  var getFolderContents = function getFolderContents(folder, callback) {
-    var files = folder.getFiles().filter(function (file) {
-      return callback ? (callback(file)) : (true);
-    });
-    return files.length !== 0 ? (files) : (null);
-  };
-
   var writeTextFile = function writeTextFile(textFileName, content) {
     var options = arguments.length > 2 && ((arguments[2] !== undefined)) ? ((arguments[2])) : (({}));
     var mode = options.mode || ("w");
     var ln = options.ln || (true);
     if (!pref.isSecurityPrefSet()) return null;
-    var file = new File(getPath(textFileName));
+    var file = new File(getFSPath(textFileName));
     if (!file) return null;
     var parentFolder = file.parent;
     if (!parentFolder.exists) return null;
@@ -1763,59 +1720,10 @@
     file.close();
     return result;
   };
-
-  var deleteFile = function deleteFile(name) {
+  var deleteFSFile = function deleteFSFile(name) {
     if (!pref.isSecurityPrefSet()) return null;
-    var file = new File(getPath(name));
+    var file = new File(getFSPath(name));
     return file.remove();
-  };
-
-  var importFile = function importFile(file) {
-    var options = arguments.length > 1 && ((arguments[1] !== undefined)) ? ((arguments[1])) : (({}));
-
-    if (!file.exists) {
-      $L.error($.line, "importFile / file is not exists / name: ".concat(file.name));
-      return null;
-    }
-
-    var type = options.type === "comp" ? ("COMP") : (options.type === "footage" ? ("FOOTAGE") : (options.type === "comp_cropped_layers" ? ("COMP_CROPPED_LAYERS") : (options.type === "project" ? ("PROJECT") : ("FOOTAGE"))));
-    var io = new ImportOptions(file);
-
-    if (options.callback && (!options.callback(io.file))) {
-      $L.error($.line, "importFile / file is not match on callback / ".concat(io.file.name));
-      return null;
-    }
-
-    io.sequence = !!options.sequence;
-    io.forceAlphabetical = !!options.forceAlphabetical;
-
-    if (!io.canImportAs(ImportAsType[type])) {
-      $L.error($.line, "importFile / ".concat(ImportAsType[type], " type is can not import / ").concat(io.file.name));
-      return null;
-    }
-
-    io.importAs = ImportAsType[type];
-    var item = app.project.importFile(io);
-    if (options.parent) item.parentFolder = options.parent;
-    return item;
-  };
-  var importFileWithName = function importFileWithName(fileName) {
-    var options = arguments.length > 1 && ((arguments[1] !== undefined)) ? ((arguments[1])) : (({}));
-    var file = getExistingFile(fileName);
-    if (!file) return null;
-    return importFile(file, options);
-  }; // const importFileList = importFiles(`foo/images`);
-  var fileSys = {
-    isFile: isFile,
-    isFolder: isFolder,
-    getPath: getPath,
-    getFile: getFile,
-    getExistingFile: getExistingFile,
-    getFolder: getFolder,
-    getExistingFolder: getExistingFolder,
-    getFolderContents: getFolderContents,
-    writeTextFile: writeTextFile,
-    deleteFile: deleteFile
   };
 
   /**
@@ -1865,7 +1773,7 @@
 
     var header = "".concat(level, "  ").concat(getNowJSTDate(), "\n");
     var str = header + JSON.stringify(contentsForJSON, JsonReplacer, "  ") + "\n";
-    return fileSys.writeTextFile(name, str, options);
+    return writeTextFile(name, str, options);
   };
 
   var writeInit = function writeInit() {
@@ -1911,15 +1819,27 @@
   };
 
   // import "date-polyfill";
+  /**
+   * http://docs.aenhancers.com/general/application/#app-saveprojectoncrash
+   */
+  // app.saveProjectOnCrash = false
+
+  /**
+   * http://docs.aenhancers.com/general/application/#app-saveprojectoncrash
+   */
+  // app.beginSuppressDialogs()
+
+  app.project.bitsPerChannel = 16;
+  app.project.expressionEngine = "javascript-1.0";
   $L = {
     error: log.writeError
   };
   $I = {
     undo: false
   };
-  fileSys.deleteFile("init_log.txt");
-  fileSys.deleteFile("log.txt");
-  log.writeInit(); // app.saveProjectOnCrash = false
+  deleteFSFile("init_log.txt");
+  deleteFSFile("log.txt");
+  log.writeInit();
 
   var times = function times(step, callback) {
     for (var i = 1; i <= step; i++) {
@@ -1943,26 +1863,6 @@
   var isAnyItem = function isAnyItem(item) {
     return isCompItem(item) || (isFolderItem(item)) || (isFootageItem(item));
   };
-  var isAVLayer = function isAVLayer(layer) {
-    return layer instanceof AVLayer;
-  };
-  var isFileSource = function isFileSource(source) {
-    return source instanceof FileSource;
-  };
-  var isSolidSource = function isSolidSource(source) {
-    return source instanceof SolidSource;
-  };
-  var isProperty = function isProperty(property) {
-    return property instanceof Property;
-  };
-  var isObject = function isObject(data) {
-    return Object.prototype.toString.call(data) === "[object Object]";
-  };
-  var posinf = Number.POSITIVE_INFINITY;
-  var neginf = Number.NEGATIVE_INFINITY;
-  var isNumber = function isNumber(data) {
-    return typeof data === "number" && (data > neginf) && (data < posinf);
-  };
 
   var getItems = function getItems(folder, callback) {
     var items = [];
@@ -1984,17 +1884,6 @@
     });
     return item;
   };
-  var findFolderItemWithName = function findFolderItemWithName(name) {
-    var parent = arguments.length > 1 && ((arguments[1] !== undefined)) ? ((arguments[1])) : ((app.project.rootFolder));
-    var item = findItemWithName(name, parent);
-
-    if (!isFolderItem(item)) {
-      $L.error($.line, "findFolderItemWithName / not found FolderItem / name: ".concat(name, " / parent: ").concat(parent.name, " / item: ").concat(item ? (item.name) : ("null")));
-      return null;
-    }
-
-    return item;
-  };
   var findCompItemWithName = function findCompItemWithName(name) {
     var parent = arguments.length > 1 && ((arguments[1] !== undefined)) ? ((arguments[1])) : ((app.project.rootFolder));
     var item = findItemWithName(name, parent);
@@ -2006,712 +1895,79 @@
 
     return item;
   };
-  var getLayers = function getLayers(comp) {
-    var options = arguments.length > 1 && ((arguments[1] !== undefined)) ? ((arguments[1])) : (({}));
-    var layers = [];
-    times(comp.numLayers, function (index) {
-      var layer = comp.layer(index);
-      if (options.callback && (options.callback(layer))) return;
-      layers.push(layer);
-    });
-    return options.fromBottom ? (layers.reverse()) : (layers);
-  };
 
-  var sequenceLayers = function sequenceLayers(comp) {
-    var options = arguments.length > 1 && ((arguments[1] !== undefined)) ? ((arguments[1])) : (({}));
-    // $I.undo && app.beginUndoGroup("sequenceLayer");
-    var layers = getLayers(comp, {
-      fromBottom: options.fromBottom
-    });
-    layers.forEach(function (layer, index) {
-      var blank = options.injectStartBlank ? (options.injectStartBlank(index, layers.length) || (0)) : (0);
+  var getRQItemStatus = function getRQItemStatus(item) {
+    var status = "";
 
-      if (index === 0) {
-        layer.startTime = blank;
-      } else {
-        layer.startTime = layers[index - 1].outPoint + blank;
-      }
-    }); // $I.undo && app.endUndoGroup();
-  };
+    switch (item.status) {
+      case RQItemStatus.WILL_CONTINUE:
+        status = "WILL_CONTINUE";
+        break;
 
-  var createFolderItem = function createFolderItem(parent, name) {
-    return parent.items.addFolder(name);
-  };
-  var createCompItem = function createCompItem(parent) {
-    var params = arguments.length > 1 && ((arguments[1] !== undefined)) ? ((arguments[1])) : (({}));
-    var name = params.name || ("comp");
-    var width = params.width || (1280);
-    var height = params.height || (720);
-    var pixelAspect = params.pixelAspect || (1.0);
-    var duration = params.duration || (30.0);
-    var frameRate = params.frameRate || (30.0);
-    return parent.items.addComp(name, width, height, pixelAspect, duration, frameRate);
-  };
+      case RQItemStatus.NEEDS_OUTPUT:
+        status = "NEEDS_OUTPUT";
+        break;
 
-  // e.g. return [parentFolder, innerFolder, comp]
-  var getItemAncestors = function getItemAncestors(item) {
-    var root = arguments.length > 1 && ((arguments[1] !== undefined)) ? ((arguments[1])) : ((app.project.rootFolder));
-    var ancestors = arguments.length > 2 && ((arguments[2] !== undefined)) ? ((arguments[2])) : (([]));
-    var parent = item.parentFolder;
+      case RQItemStatus.UNQUEUED:
+        status = "UNQUEUED";
+        break;
 
-    if (parent === root) {
-      return ancestors.reverse();
-    } else if (parent === app.project.rootFolder) {
-      return null;
-    } else {
-      ancestors.push(parent);
-      return getItemAncestors(parent, root, ancestors);
+      case RQItemStatus.QUEUED:
+        status = "QUEUED";
+        break;
+
+      case RQItemStatus.RENDERING:
+        status = "RENDERING";
+        break;
+
+      case RQItemStatus.USER_STOPPED:
+        status = "USER_STOPPED";
+        break;
+
+      case RQItemStatus.ERR_STOPPED:
+        status = "ERR_STOPPED";
+        break;
+
+      case RQItemStatus.DONE:
+        status = "DONE";
+        break;
     }
+
+    return status;
   };
-  var getItemWithPathArray = function getItemWithPathArray(pathArray) {
-    var parent = arguments.length > 1 && ((arguments[1] !== undefined)) ? ((arguments[1])) : ((app.project.rootFolder));
+  var addRenderQueue = function addRenderQueue(compItem) {
+    var relPath = arguments.length > 1 && ((arguments[1] !== undefined)) ? ((arguments[1])) : (("./render/output.avi"));
     var options = arguments.length > 2 && ((arguments[2] !== undefined)) ? ((arguments[2])) : (({}));
-    if (!pathArray || (pathArray.length === 0)) return null;
-    var isTarget = pathArray.length === 1;
-    var item = findItemWithName(pathArray[0], parent);
-    options.callback && (options.callback(item, pathArray.length));
+    var renderQueue = app.project.renderQueue;
+    renderQueue.items.add(compItem);
+    var RQItem = renderQueue.item(renderQueue.numItems);
+    RQItem.applyTemplate(options.renderTemplate || ("Best Settings"));
+    var moduleItem = RQItem.outputModule(RQItem.numOutputModules);
+    moduleItem.applyTemplate(options.moduleTemplate || ("Lossless"));
+    var file = getFSFile(relPath);
+    if (file.exists) file.remove();
+    moduleItem.file = file;
+    moduleItem.includeSourceXMP = false;
+    var statusChanged = options.statusChanged;
 
-    if (!item) {
-      if (options.createFolder) {
-        var newFolder = createFolderItem(parent, pathArray[0]);
-        if (isTarget) return newFolder;
-        return getItemWithPathArray(pathArray.slice(1), newFolder, options);
-      }
-
-      $L.error($.line, "getItemWithPathArray / not found item / ".concat(pathArray[0]));
-      return null;
+    if (statusChanged) {
+      RQItem.onStatusChanged = function () {
+        statusChanged(RQItem, getRQItemStatus(RQItem));
+      };
     }
 
-    if (isTarget) return item;
-    if (isFolderItem(item)) return getItemWithPathArray(pathArray.slice(1), item, options);
-    if (options.stopAtComp && (isCompItem(item))) return item;
-    if (options.stopAtFootage && (isFootageItem(item))) return item;
-    $L.error($.line, "getItemWithPathArray / not processed / ".concat(item.name));
-    return null;
+    var logType = options.logType;
+    if (logType) RQItem.logType = LogType[logType];
+    return RQItem;
   };
 
-  var getItemAncestorsName = function getItemAncestorsName(item) {
-    var root = arguments.length > 1 && ((arguments[1] !== undefined)) ? ((arguments[1])) : ((app.project.rootFolder));
-    var itemAncestors = getItemAncestors(item, root);
-    if (!itemAncestors) return null;
-    return itemAncestors.map(function (v) {
-      return v.name;
-    });
-  };
-
-  var matchSuffixNum = function matchSuffixNum(str) {
-    return str.match(/[0-9]*$/);
-  };
-  var getMaxSuffixNumItemName = function getMaxSuffixNumItemName(matchName, parent, typeChecker) {
-    var maxNum;
-    var maxNumItemName = matchName;
-    getItems(parent).forEach(function (item) {
-      if (!typeChecker(item)) return;
-      var regexp = new RegExp("^" + matchName + "\\s*[0-9]*$");
-
-      if (!regexp.test(item.name)) {
-        $L.error($.line, "getMaxSuffixNumItemName");
-        return;
-      }
-
-      var matchArr = matchSuffixNum(item.name);
-
-      if (!matchArr) {
-        $L.error($.line, "getMaxSuffixNumItemName");
-        return;
-      }
-
-      var suffixStr = matchArr[0];
-
-      if (suffixStr === "") {
-        maxNum = 0;
-        maxNumItemName = matchName;
-        return;
-      }
-
-      var suffixNum = parseInt(suffixStr, 10);
-
-      if (maxNum === undefined) {
-        maxNum = suffixNum;
-        maxNumItemName = item.name;
-        return;
-      }
-
-      if (suffixNum > maxNum) {
-        maxNum = suffixNum;
-        maxNumItemName = item.name;
-      }
-    });
-    return maxNumItemName;
-  };
-  var createFoldersWithSuffixNum = function createFoldersWithSuffixNum(name, parent, number) {
-    var suffix = arguments.length > 3 && ((arguments[3] !== undefined)) ? ((arguments[3])) : ((true));
-    var match = matchSuffixNum(name);
-
-    if (!match) {
-      $L.error($.line, "createFoldersWithSuffixNum");
-      return;
-    }
-
-    var newFolders = [];
-    times(number, function (i) {
-      var newFolderName;
-
-      if (match[0] === "") {
-        newFolderName = suffix ? (name + i) : (name);
-      } else {
-        var baseName = name.slice(0, match.index);
-        var suffixNumStr = match[0];
-        var suffixNum = parseInt(suffixNumStr, 10);
-        newFolderName = suffix ? (baseName + (suffixNum + i)) : (baseName);
-      }
-
-      newFolders.push(createFolderItem(parent, newFolderName));
-    });
-    return newFolders;
-  };
-  var createFolderStruct = function createFolderStruct(root) {
-    var struct = {};
-    getItems(root).forEach(function (item) {
-      if (isFolderItem(item)) {
-        struct[item.name] = createFolderStruct(item);
-      } else {
-        struct[item.name] = item;
-      }
-    });
-    return struct;
-  };
-  var createFolderFromStruct = function createFolderFromStruct(parent, struct) {
-    var callbacks = arguments.length > 2 && ((arguments[2] !== undefined)) ? ((arguments[2])) : (({}));
-    Object.keys(struct).forEach(function (key) {
-      var item = struct[key];
-
-      if (!isFolderItem(item) && (!isObject(item))) {
-        callbacks.av && (callbacks.av(parent, item));
-      } else {
-        var newFolder = createFolderItem(parent, key);
-        createFolderFromStruct(newFolder, item, callbacks);
-        callbacks.folder && (callbacks.folder(newFolder));
-      }
-    });
-  };
-  var replaceLayerIfInsideTarget = function replaceLayerIfInsideTarget(comp, sourceFolder, targetFolder) {
-    var callbacks = arguments.length > 3 && ((arguments[3] !== undefined)) ? ((arguments[3])) : (({}));
-    // new comp's layer iterate
-    getLayers(comp).forEach(function (layer) {
-      if (isAVLayer(layer) && (isCompItem(layer.source) || (isFootageItem(layer.source)))) {
-        if (callbacks.pre && (callbacks.pre(layer))) {
-          return;
-        }
-
-        var itemAncestorsNameList = getItemAncestorsName(layer.source, sourceFolder);
-
-        if (itemAncestorsNameList) {
-          itemAncestorsNameList.push(layer.source.name); // alert(itemAncestorsNameList.join(" / "));
-
-          var _newSource = getItemWithPathArray(itemAncestorsNameList, targetFolder);
-
-          if (!_newSource) {
-            $L.error($.line, "replaceLayerIfInsideTarget / not found newSource");
-            return;
-          }
-
-          callbacks.after && (callbacks.after(layer.source, _newSource)); // 作成したコンポジションのレイヤーがフォルダー内のものであれば置き換え
-
-          layer.replaceSource(_newSource, false);
-        }
-      }
-    });
-  };
-
-  var errorName = "duplicateFolder"; // duplicateFolder(app.project.item(2) as FolderItem, {
-  var duplicateFolder = (function (sourceFolder) {
-    var options = arguments.length > 1 && ((arguments[1] !== undefined)) ? ((arguments[1])) : (({}));
-
-    if (!isFolderItem(sourceFolder)) {
-      $L.error($.line, "".concat(errorName, " / not found sourceFolder"));
-      return undefined;
-    }
-
-    var copieNum = options.copieNum || (1);
-    var parentFolder = options.parent || (sourceFolder.parentFolder);
-    var newRootFolders;
-    var name = sourceFolder.name;
-    var baseName;
-
-    if (options.name) {
-      baseName = options.name;
-    } else {
-      if (options.suffix) {
-        var match = matchSuffixNum(name);
-
-        if (!match) {
-          $L.error($.line, "".concat(errorName, " / not match matchSuffixNum(name)"));
-          return;
-        }
-
-        baseName = name.slice(0, match.index).trimEnd();
-      } else {
-        baseName = name;
-      }
-    }
-
-    var maxNumItemName = baseName;
-
-    if (options.suffix) {
-      maxNumItemName = getMaxSuffixNumItemName(baseName, parentFolder, isFolderItem);
-    }
-
-    newRootFolders = createFoldersWithSuffixNum(maxNumItemName, parentFolder, copieNum, options.suffix);
-
-    if (!newRootFolders) {
-      $L.error($.line, "".concat(errorName, " / not found newRootFolders"));
-      return;
-    }
-
-    var struct = createFolderStruct(sourceFolder); // const testStruct = createFolderStructTest(sourceFolder);
-    // const json = JSON.stringify(testStruct);
-    // alert(json);
-
-    $I.undo && (app.beginUndoGroup("Duplicate Folder")); // new folderList iterate
-
-    newRootFolders.forEach(function (newFolder) {
-      var compList = [];
-      createFolderFromStruct(newFolder, struct, {
-        av: function av(parent, item) {
-          var newItem;
-
-          if (isCompItem(item)) {
-            newItem = item.duplicate();
-            compList.push(newItem);
-          }
-
-          if (isFootageItem(item)) {
-            if (isFileSource(item.mainSource)) {
-              var file = item.mainSource.file;
-
-              if (!file) {
-                $L.error($.line, "".concat(errorName, " / not found file"));
-                return;
-              }
-
-              var importOptions = new ImportOptions(file);
-              importOptions.sequence = !item.mainSource.isStill;
-              newItem = app.project.importFile(importOptions);
-            }
-
-            if (isSolidSource(item.mainSource)) {
-              var solidData = {
-                color: item.mainSource.color,
-                name: item.name,
-                width: item.width,
-                height: item.height
-              };
-              newItem = app.project.importPlaceholder("placeholderTempName", 4, 4, 30.0, 1.0);
-              newItem.replaceWithSolid(solidData.color, "solidTempName", solidData.width, solidData.height, 1.0);
-            }
-          }
-
-          if (!newItem) {
-            $L.error($.line, "".concat(errorName, " / "));
-            return;
-          }
-
-          newItem.parentFolder = parent;
-          newItem.name = item.name;
-        }
-      }); // Memoization
-
-      var memoList = [];
-      compList.forEach(function (comp) {
-        replaceLayerIfInsideTarget(comp, sourceFolder, newFolder, {
-          pre: function pre(layer) {
-            return memoList.some(function (set) {
-              if (layer.source === set.source) {
-                layer.replaceSource(set.target, false);
-                return true;
-              }
-            });
-          },
-          after: function after(source, target) {
-            memoList.push({
-              source: source,
-              target: target
-            });
-          }
-        });
-      });
-      $I.undo && (app.endUndoGroup());
-    });
-    return newRootFolders;
-  });
-
-  var constants = {
-    compData: {
-      width: 1280,
-      height: 720,
-      pixelAspect: 1.0,
-      frameRate: 30.0
-    },
-    colors: {
-      black: [0, 0, 0]
-    },
-    beziers: {
-      ease: {
-        speed: 0,
-        influence: 33.33333
-      }
-    }
-  };
-
-  // genFade(partLayer, "in", 1);
-  // genFade(partLayer, "out", 2);
-
-  var genFade = function genFade(layer, type, duration) {
-    var ease = arguments.length > 3 && ((arguments[3] !== undefined)) ? ((arguments[3])) : (({}));
-    var easeInProps = ease["in"] || (constants.beziers.ease);
-    var easeOutProps = ease.out || (constants.beziers.ease);
-    var easeIn = new KeyframeEase(easeInProps.speed, easeInProps.influence);
-    var easeOut = new KeyframeEase(easeOutProps.speed, easeOutProps.influence);
-    var linear = new KeyframeEase(0, 0.1);
-    var inPoint;
-    var outPoint;
-    var isIN = type === "in";
-
-    if (isIN) {
-      inPoint = layer.inPoint;
-      outPoint = inPoint + duration;
-    } else {
-      outPoint = layer.outPoint;
-      inPoint = outPoint - duration;
-    }
-
-    var opacity = layer.property("ADBE Transform Group").property("ADBE Opacity");
-
-    if (!isProperty(opacity)) {
-      $L.error($.line, "genFade / not found Property / layer name: ".concat(layer.name));
-      return;
-    }
-
-    var startKeyIndex = opacity.addKey(inPoint);
-    var endKeyIndex = opacity.addKey(outPoint);
-    opacity.setValueAtKey(startKeyIndex, isIN ? (0) : (100));
-    opacity.setValueAtKey(endKeyIndex, isIN ? (100) : (0));
-    opacity.setTemporalEaseAtKey(startKeyIndex, [linear], [easeIn]);
-    opacity.setTemporalEaseAtKey(endKeyIndex, [easeOut], [linear]);
-  };
-
-  var createFade = function createFade(fadeObj, layer) {
-    if (fadeObj) {
-      if (fadeObj["in"]) {
-        genFade(layer, "in", fadeObj["in"].duration);
-      }
-
-      if (fadeObj.out) {
-        genFade(layer, "out", fadeObj.out.duration);
-      }
-    }
-  };
-
-  var initGenStruct = (function ($struct) {
-    if (findItemWithName("1_templates") || (findItemWithName("2_scene"))) {
-      $L.error($.line, "initGenStruct / Folder already exists");
-      return;
-    }
-
-    var $parts = $struct.parts;
-
-    if ($parts.length === 0) {
-      $L.error($.line, "initGenStruct / not exist struct $parts");
-      return;
-    }
-
-    var rootFolder = app.project.rootFolder;
-    var templatesFolder = createFolderItem(rootFolder, "1_templates");
-    var sceneFolder = createFolderItem(rootFolder, "2_scene");
-    var compData = $struct.compData;
-    var width = compData.width || (constants.compData.width);
-    var height = compData.height || (constants.compData.height);
-    var $sceneComp = createCompItem(sceneFolder, {
-      width: width,
-      height: height,
-      name: "$" + "scene"
-    });
-    /**
-     * iterate parts
-     */
-
-    $parts.forEach(function ($partStruct, partIndex) {
-      if (!$partStruct.project) {
-        $L.error($.line, "initGenStruct / not found project / partIndex: ".concat(partIndex));
-        return;
-      }
-
-      if ($partStruct.cuts.length === 0) {
-        $L.error($.line, "initGenStruct / not found cut / project: ".concat($partStruct.project));
-        return;
-      }
-
-      var partName = "part_".concat(partIndex + 1);
-      var templatePartFolderItem = createFolderItem(templatesFolder, partName);
-      var templatePartAEPFolderItem = importFileWithName("".concat($partStruct.project, ".aep"), {
-        type: "project",
-        parent: templatePartFolderItem
-      });
-      if (!templatePartAEPFolderItem || (!isFolderItem(templatePartAEPFolderItem))) return;
-      var scenePartFolderItem = createFolderItem(sceneFolder, partName);
-      var $partComp = createCompItem(scenePartFolderItem, {
-        width: width,
-        height: height,
-        name: "$" + partName
-      });
-      /**
-       * iterate cuts
-       */
-
-      $partStruct.cuts.forEach(function ($cutStruct, cutIndex) {
-        if (!$cutStruct.name) {
-          $L.error($.line, "initGenStruct / not found cut name / project: ".concat($partStruct.project));
-          return;
-        }
-
-        var templateMainFolderItem = findFolderItemWithName("main", templatePartAEPFolderItem);
-        if (!templateMainFolderItem) return;
-        var templateCutFolderItem = findFolderItemWithName($cutStruct.name, templateMainFolderItem);
-        if (!templateCutFolderItem) return;
-
-        var _sceneCutFolderItems = duplicateFolder(templateCutFolderItem, {
-          suffix: false,
-          parent: scenePartFolderItem
-        });
-
-        if (!_sceneCutFolderItems || (!isFolderItem(_sceneCutFolderItems[0]))) {
-          $L.error($.line, "initGenStruct / not found _sceneCutFolderItems / cut name: ".concat($cutStruct.name));
-          return;
-        }
-
-        var sceneCutFolderItem = _sceneCutFolderItems[0];
-        sceneCutFolderItem.name = "".concat(cutIndex + 1, "_").concat(sceneCutFolderItem.name);
-        var sceneCutMainComp = findCompItemWithName("main", sceneCutFolderItem);
-        if (!sceneCutMainComp) return;
-        /**
-         * inject cut layer to part comp
-         */
-
-        var cutMainLayer = $partComp.layers.add(sceneCutMainComp);
-        cutMainLayer.name = cutIndex + 1 + "_" + $cutStruct.name;
-        createFade($cutStruct.fade, cutMainLayer);
-        var replaceFolderItem = findFolderItemWithName("replace", sceneCutFolderItem);
-        if (!replaceFolderItem) return;
-        var imagesFolderItem = findFolderItemWithName("images", replaceFolderItem);
-        if (!imagesFolderItem) return;
-        var $replaceObj = $cutStruct.replace;
-
-        if ($replaceObj.images.length !== imagesFolderItem.numItems) {
-          $L.error($.line, "initGenStruct / not match number cutFolder's images and replaceObj's images / cut name: ".concat($cutStruct.name));
-          return;
-        }
-
-        var replaceTargetImagesFolder = fileSys.getExistingFolder("replace/images");
-        if (!replaceTargetImagesFolder) return;
-        var replaceTargetList = fileSys.getFolderContents(replaceTargetImagesFolder);
-
-        if (!replaceTargetList || (replaceTargetList.length === 0)) {
-          $L.error($.line, "initGenStruct / not found image replaceTargetList /  / name: ".concat($cutStruct.name));
-          return;
-        }
-        /**
-         * iterate imageFolder
-         */
-
-
-        getItems(imagesFolderItem).forEach(function (item, index) {
-          if (!isFootageItem(item) || (!isFileSource(item.mainSource))) {
-            $L.error($.line, "initGenStruct / imagesFolderItem's item is not found / name: ".concat(item.name));
-            return;
-          }
-
-          var newImageIndex = parseInt(item.name);
-
-          if (!isNumber(newImageIndex)) {
-            $L.error($.line, "initGenStruct / imagesFolderItem's image name is not number / name: ".concat(item.name));
-            return;
-          }
-
-          var $replaceImageObj = $replaceObj.images[newImageIndex - 1];
-
-          if (!$replaceImageObj) {
-            $L.error($.line, "initGenStruct / not found image name from replaceObj / name: ".concat(item.name));
-            return;
-          }
-
-          var replaceTarget = replaceTargetList.find(function (fileOrFolder) {
-            return fileOrFolder.name === $replaceImageObj.name;
-          });
-
-          if (replaceTarget === undefined) {
-            $L.error($.line, "initGenStruct / not found image replaceTarget / name: ".concat(item.name));
-            return;
-          }
-
-          if (fileSys.isFolder(replaceTarget)) {
-            var innerFileAndFolderList = replaceTarget.getFiles();
-
-            if (innerFileAndFolderList.length !== 0) {
-              var innerFileAndFolder = innerFileAndFolderList[0];
-
-              if (fileSys.isFile(innerFileAndFolder)) {
-                item.replaceWithSequence(innerFileAndFolder, false);
-              }
-            }
-          } else {
-            item.replace(replaceTarget);
-          }
-        }); // iterate imageFolder
-      }); // iterate cuts
-
-      sequenceLayers($partComp, {
-        fromBottom: true,
-        injectStartBlank: function injectStartBlank(index, length) {
-          return $partStruct.cuts[index].startBlank;
-        }
-      });
-      $partComp.duration = $partComp.layer(1).outPoint;
-      var partLayer = $sceneComp.layers.add($partComp);
-      createFade($partStruct.fade, partLayer);
-    }); // iterate parts
-
-    sequenceLayers($sceneComp, {
-      fromBottom: true,
-      injectStartBlank: function injectStartBlank(index, length) {
-        return $struct.parts[index].startBlank;
-      }
-    });
-    $sceneComp.duration = $sceneComp.layer(1).outPoint;
-    var $containerComp = createCompItem(sceneFolder, {
-      width: width,
-      height: height,
-      name: "$container"
-    });
-    var sceneLayer = $containerComp.layers.add($sceneComp);
-    sceneLayer.startTime = $struct.startBlank || (0);
-    var duration = sceneLayer.outPoint + ($struct.endBlank || (0));
-    $containerComp.duration = duration;
-    createFade($struct.fade, sceneLayer);
-    var bgLayer = $containerComp.layers.addSolid(compData.backgroundColor || (constants.colors.black), "background", width, height, constants.compData.pixelAspect, duration);
-    bgLayer.moveToEnd();
-    var $rootComp = createCompItem(app.project.rootFolder, {
-      width: width,
-      height: height,
-      name: "$root"
-    });
-    var rootCompLayer = $rootComp.layers.add($containerComp);
-    $rootComp.duration = rootCompLayer.outPoint;
-  });
-
-  var struct = {
-    compData: {
-      width: 1280,
-      height: 720,
-      backgroundColor: [0, 0, 0]
-    },
-    startBlank: 1,
-    endBlank: 3,
-    fade: {
-      "in": {
-        duration: 2
-      },
-      out: {
-        duration: 2
-      }
-    },
-    parts: [{
-      project: "simple",
-      startBlank: 2,
-      cuts: [{
-        name: "start",
-        replace: {
-          images: [{
-            name: "0005.jpg"
-          }]
-        },
-        startBlank: 0.5
-      }, {
-        name: "short",
-        replace: {
-          images: [{
-            name: "0012.jpg"
-          }, {
-            name: "0013.jpg"
-          }]
-        },
-        startBlank: -1,
-        fade: {
-          "in": {
-            duration: 1
-          }
-        }
-      }, {
-        name: "long",
-        replace: {
-          images: [{
-            name: "0012.jpg"
-          }, {
-            name: "0013.jpg"
-          }]
-        }
-      }, {
-        name: "end",
-        replace: {
-          images: [{
-            name: "0006.jpg"
-          }]
-        }
-      }]
-    }, {
-      project: "simple",
-      startBlank: -1.5,
-      fade: {
-        "in": {
-          duration: 1.5
-        },
-        out: {
-          duration: 2
-        }
-      },
-      cuts: [{
-        name: "long",
-        replace: {
-          images: [{
-            name: "0005.jpg"
-          }, {
-            name: "0006.jpg"
-          }]
-        }
-      }, {
-        name: "long",
-        replace: {
-          images: [{
-            name: "0007.jpg"
-          }, {
-            name: "0008.jpg"
-          }]
-        }
-      }, {
-        name: "short",
-        replace: {
-          images: [{
-            name: "0009.jpg"
-          }, {
-            name: "0010.jpg"
-          }]
-        }
-      }]
-    }]
-  };
+  // & 'C:\Program Files\Adobe\Adobe After Effects 2020\Support Files\aerender' -project 'D:\Documents\Projects\myProjects\AE_Scripts\dist\testInitFolderStruct.aep'
 
   var fn = function fn() {
-    initGenStruct(struct);
+    // initGenStruct(struct);
+    var renderComp = findCompItemWithName("$root");
+    if (!renderComp) return;
+    addRenderQueue(renderComp);
   };
 
   fn(); // const file = new File("aaaaa");

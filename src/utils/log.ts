@@ -1,6 +1,6 @@
-import fileSys from "./fileSys";
+import { writeTextFile } from "./fileSys";
 import { getNowJSTDate } from "./date";
-import { computeDurationWithMS } from "./utils";
+import { computeDurationWithMS } from "./general";
 
 type JSONValue = string | number | null | boolean | undefined;
 type JSONObject = {
@@ -23,7 +23,7 @@ const writeLog = (
   const header = `${level}  ${getNowJSTDate()}\n`;
   const str =
     header + JSON.stringify(contentsForJSON, JsonReplacer, "  ") + "\n";
-  return fileSys.writeTextFile(name, str, options);
+  return writeTextFile(name, str, options);
 };
 
 const writeInit = (name: string = "init_log.txt"): boolean | null => {

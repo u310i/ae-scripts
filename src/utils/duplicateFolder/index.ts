@@ -6,22 +6,25 @@ import {
   isSolidSource
 } from "../typeCheck";
 
-const errorName = "duplicateFolder";
+import { importFSFile } from "../fileSys";
+
+import {
+  matchSuffixNum,
+  getMaxSuffixNumItemName,
+  createFoldersWithSuffixNum,
+  createFolderFromStruct,
+  replaceLayerIfInsideTarget
+} from "./utils";
+
+import { createFolderStruct } from "../item";
 
 // duplicateFolder(app.project.item(2) as FolderItem, {
 //   name: "test",
 //   copieNum: 1,
 //   parent: app.project.item(10) as FolderItem
 // });
-import {
-  matchSuffixNum,
-  getMaxSuffixNumItemName,
-  createFoldersWithSuffixNum,
-  createFolderStruct,
-  createFolderFromStruct,
-  createFolderStructTest,
-  replaceLayerIfInsideTarget
-} from "./utils";
+
+const errorName = "duplicateFolder";
 
 export default (
   sourceFolder: FolderItem,
@@ -41,6 +44,7 @@ export default (
 
   let newRootFolders: FolderItem[] | undefined;
   let name = sourceFolder.name;
+  const comment = sourceFolder.comment;
   let baseName: string;
   if (options.name) {
     baseName = options.name;
@@ -66,22 +70,18 @@ export default (
     );
   }
 
-  newRootFolders = createFoldersWithSuffixNum(
-    maxNumItemName,
-    parentFolder,
-    copieNum,
-    options.suffix
-  );
+  newRootFolders = createFoldersWithSuffixNum(maxNumItemName, {
+    parent: parentFolder,
+    number: copieNum,
+    suffix: options.suffix,
+    comment
+  });
 
   if (!newRootFolders) {
     $L.error($.line, `${errorName} / not found newRootFolders`);
     return;
   }
   const struct = createFolderStruct(sourceFolder);
-
-  // const testStruct = createFolderStructTest(sourceFolder);
-  // const json = JSON.stringify(testStruct);
-  // alert(json);
 
   $I.undo && app.beginUndoGroup("Duplicate Folder");
 
@@ -98,13 +98,16 @@ export default (
         if (isFootageItem(item)) {
           if (isFileSource(item.mainSource)) {
             const file = item.mainSource.file;
-            if (!file) {
+            if (!file.exists) {
               $L.error($.line, `${errorName} / not found file`);
               return;
             }
-            const importOptions = new ImportOptions(file);
-            importOptions.sequence = !item.mainSource.isStill;
-            newItem = app.project.importFile(importOptions) as FootageItem;
+            newItem = importFSFile(file, {
+              type: "footage",
+              sequence: !item.mainSource.isStill
+            });
+            if (!newItem) return;
+            newItem.comment = item.comment;
           }
           if (isSolidSource(item.mainSource)) {
             const solidData = {
@@ -127,6 +130,7 @@ export default (
               solidData.height,
               1.0
             );
+            newItem.comment = item.comment;
           }
         }
 

@@ -19,7 +19,7 @@ import {
   isMaskPropertyGroup,
   isAnyItem
 } from "./typeCheck";
-import fileSys from "./fileSys";
+import {} from "./fileSys";
 
 // e.g. return [parentFolder, innerFolder, comp]
 export const getItemAncestors = (

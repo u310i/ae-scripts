@@ -1,4 +1,4 @@
-import { times } from "./utils";
+import { times } from "./general";
 import {
   isCompItem,
   isFolderItem,
@@ -16,7 +16,7 @@ import {
   isTextLayer,
   isShapeLayer
 } from "./typeCheck";
-import fileSys from "./fileSys";
+import {} from "./fileSys";
 
 export const getItems = (
   folder: FolderItem,

@@ -1,6 +1,14 @@
-import { times } from "./utils";
-import { isAVLayer, isCompItem } from "./typeCheck";
-import { getLayers } from "./getEntity";
+import { times } from "./general";
+import {
+  isAVLayer,
+  isCompItem,
+  isFolderItem,
+  isFootageItem,
+  isFileSource,
+  isSolidSource,
+  isObject
+} from "./typeCheck";
+import { getLayers, getItems } from "./getEntity";
 
 export const createFolderItem = (
   parent: FolderItem,
@@ -76,4 +84,51 @@ export const deepCompCopy = (
   replaceLayerLists.forEach(set => {
     deepCompCopy(set.comp, set.layers);
   });
+};
+
+export type FolderStructType = {
+  [key: string]: CompItem | FootageItem | FolderStructType | FolderItem;
+};
+
+export const createFolderStruct = (
+  parent: FolderItem = app.project.rootFolder,
+  appendFolder: boolean = false
+): FolderStructType => {
+  const struct: FolderStructType = {};
+
+  getItems(parent).forEach(item => {
+    if (appendFolder) struct["$$parent"] = parent;
+    if (isFolderItem(item)) {
+      struct[item.name] = createFolderStruct(item);
+    } else {
+      struct[item.name] = item;
+    }
+  });
+
+  return struct;
+};
+
+// const struct = createFolderStruct(app.project.rootFolder, true);
+// alert(JSON.stringify(visualizeStruct(struct), null, "  "));
+type VisualizeStruct = { [key: string]: string | VisualizeStruct };
+export const visualizeStruct = (struct: FolderStructType): VisualizeStruct => {
+  const vizStruct: VisualizeStruct = {};
+  Object.keys(struct).forEach(key => {
+    const item = struct[key];
+    if (key === "$$parent") return;
+    if (isFootageItem(item)) {
+      if (isFileSource(item.mainSource)) {
+        vizStruct[key] = `footage / file`;
+      } else if (isSolidSource(item.mainSource)) {
+        vizStruct[key] = `footage / solid`;
+      } else {
+        vizStruct[key] = `footage / not file or solid`;
+      }
+    } else if (isCompItem(item)) {
+      vizStruct[key] = `comp`;
+    } else if (isObject(item) && !isFolderItem(item)) {
+      vizStruct[key] = visualizeStruct(item);
+    }
+  });
+  return vizStruct;
 };

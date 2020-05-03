@@ -1,45 +1,48 @@
 import pref from "./pref";
 import { isFolderItem, isCompItem } from "./typeCheck";
 
-const isFile = (data: File | Folder): data is File => {
+export const isFSFile = (data: File | Folder): data is File => {
   return data instanceof File;
 };
 
-const isFolder = (data: File | Folder): data is Folder => {
+export const isFSFolder = (data: File | Folder): data is Folder => {
   return data instanceof Folder;
 };
 
-const getPath = (name: string): string => {
+export const getFSPath = (name: string): string => {
   return new File($.fileName).path + "/" + encodeURI(name);
 };
 
-const getFile = (fileName: string): File => {
-  return new File(getPath(fileName));
+export const getFSFile = (fileName: string): File => {
+  return new File(getFSPath(fileName));
 };
 
-const getExistingFile = (fileName: string): File | null => {
-  const file = getFile(fileName);
+export const getExistingFile = (fileName: string): File | null => {
+  const file = getFSFile(fileName);
   if (!file.exists) {
-    $L.error($.line, `getFile / File is not exists / name: ${fileName}`);
+    $L.error($.line, `getFSFile / File is not exists / name: ${fileName}`);
     return null;
   }
   return file;
 };
 
-const getFolder = (folderName: string): Folder => {
-  return new Folder(getPath(folderName));
+export const getFSFolder = (folderName: string): Folder => {
+  return new Folder(getFSPath(folderName));
 };
 
-const getExistingFolder = (folderName: string): Folder | null => {
-  const folder = getFolder(folderName);
+export const getExistingFSFolder = (folderName: string): Folder | null => {
+  const folder = getFSFolder(folderName);
   if (!folder.exists) {
-    $L.error($.line, `getFolder / Folder is not exists / name: ${folderName}`);
+    $L.error(
+      $.line,
+      `getFSFolder / Folder is not exists / name: ${folderName}`
+    );
     return null;
   }
   return folder;
 };
 
-const getFolderContents = (
+export const getFSFolderContents = (
   folder: Folder,
   callback?: (file: File | Folder) => boolean
 ): Array<File | Folder> | null => {
@@ -49,7 +52,7 @@ const getFolderContents = (
   return files.length !== 0 ? files : null;
 };
 
-const writeTextFile = (
+export const writeTextFile = (
   textFileName: string,
   content: string,
   options: {
@@ -60,7 +63,7 @@ const writeTextFile = (
   const mode = options.mode || "w";
   const ln = options.ln || true;
   if (!pref.isSecurityPrefSet()) return null;
-  const file = new File(getPath(textFileName));
+  const file = new File(getFSPath(textFileName));
   if (!file) return null;
   const parentFolder = file.parent;
   if (!parentFolder.exists) return null;
@@ -72,9 +75,9 @@ const writeTextFile = (
   return result;
 };
 
-const deleteFile = (name: string): boolean | null => {
+export const deleteFSFile = (name: string): boolean | null => {
   if (!pref.isSecurityPrefSet()) return null;
-  const file = new File(getPath(name));
+  const file = new File(getFSPath(name));
   return file.remove();
 };
 
@@ -88,12 +91,12 @@ type ImportFileOptions = {
   callback?: (file: File) => boolean;
 };
 
-export const importFile = (
+export const importFSFile = (
   file: File,
   options: ImportFileOptions = {}
 ): Item | null => {
   if (!file.exists) {
-    $L.error($.line, `importFile / file is not exists / name: ${file.name}`);
+    $L.error($.line, `importFSFile / file is not exists / name: ${file.name}`);
     return null;
   }
 
@@ -113,7 +116,7 @@ export const importFile = (
   if (options.callback && !options.callback(io.file)) {
     $L.error(
       $.line,
-      `importFile / file is not match on callback / ${io.file.name}`
+      `importFSFile / file is not match on callback / ${io.file.name}`
     );
     return null;
   }
@@ -122,7 +125,7 @@ export const importFile = (
   if (!io.canImportAs(ImportAsType[type])) {
     $L.error(
       $.line,
-      `importFile / ${ImportAsType[type]} type is can not import / ${io.file.name}`
+      `importFSFile / ${ImportAsType[type]} type is can not import / ${io.file.name}`
     );
     return null;
   }
@@ -132,24 +135,24 @@ export const importFile = (
   return item;
 };
 
-export const importFileWithName = (
+export const importFSFileWithName = (
   fileName: string,
   options: ImportFileOptions = {}
 ): Item | null => {
   const file = getExistingFile(fileName);
   if (!file) return null;
-  return importFile(file, options);
+  return importFSFile(file, options);
 };
 
 // const importFileList = importFiles(`foo/images`);
-export const importFilesWithName = (
+export const importFSFilesWithName = (
   folderName: string,
   options: ImportFileOptions = {}
 ): Item[] | null => {
-  const folder = getExistingFolder(getPath(folderName));
+  const folder = getExistingFSFolder(getFSPath(folderName));
   if (!folder) return null;
-  const files = getFolderContents(folder, file => {
-    if (isFile(file)) {
+  const files = getFSFolderContents(folder, file => {
+    if (isFSFile(file)) {
       return options.callback ? options.callback(file) : true;
     }
     return false;
@@ -157,7 +160,7 @@ export const importFilesWithName = (
   if (!files || files.length === 0) {
     $L.error(
       $.line,
-      `importFilesWithName / files is not exists / ${folderName}`
+      `importFSFilesWithName / files is not exists / ${folderName}`
     );
     return null;
   }
@@ -165,29 +168,16 @@ export const importFilesWithName = (
   const items = [] as Item[];
   files.forEach(file => {
     const { callback, ...importFileOptions } = options;
-    const item = importFile(file, importFileOptions);
+    const item = importFSFile(file, importFileOptions);
     if (!item) return;
     items.push(item);
   });
   if (items.length === 0) {
     $L.error(
       $.line,
-      `importFilesWithName / items is not exists / ${folderName}`
+      `importFSFilesWithName / items is not exists / ${folderName}`
     );
     return null;
   }
   return items;
-};
-
-export default {
-  isFile,
-  isFolder,
-  getPath,
-  getFile,
-  getExistingFile,
-  getFolder,
-  getExistingFolder,
-  getFolderContents,
-  writeTextFile,
-  deleteFile
 };
