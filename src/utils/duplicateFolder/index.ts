@@ -1,3 +1,5 @@
+import { __canUndo__, __Error__ } from "../initialize";
+
 import {
   isCompItem,
   isFolderItem,
@@ -6,7 +8,7 @@ import {
   isSolidSource
 } from "../typeCheck";
 
-import { importFSFile } from "../fileSys";
+import { importFSFile } from "../System/fileSys";
 
 import {
   matchSuffixNum,
@@ -16,7 +18,7 @@ import {
   replaceLayerIfInsideTarget
 } from "./utils";
 
-import { createFolderStruct } from "../item";
+import { createFolderStruct } from "./utils";
 
 // duplicateFolder(app.project.item(2) as FolderItem, {
 //   name: "test",
@@ -36,7 +38,7 @@ export default (
   } = {}
 ): FolderItem[] | undefined => {
   if (!isFolderItem(sourceFolder)) {
-    $L.error($.line, `${errorName} / not found sourceFolder`);
+    __Error__($.line, `${errorName} / not found sourceFolder`);
     return undefined;
   }
   const copieNum = options.copieNum || 1;
@@ -52,7 +54,7 @@ export default (
     if (options.suffix) {
       const match = matchSuffixNum(name);
       if (!match) {
-        $L.error($.line, `${errorName} / not match matchSuffixNum(name)`);
+        __Error__($.line, `${errorName} / not match matchSuffixNum(name)`);
         return;
       }
       baseName = name.slice(0, match.index).trimEnd();
@@ -78,12 +80,12 @@ export default (
   });
 
   if (!newRootFolders) {
-    $L.error($.line, `${errorName} / not found newRootFolders`);
+    __Error__($.line, `${errorName} / not found newRootFolders`);
     return;
   }
   const struct = createFolderStruct(sourceFolder);
 
-  $I.undo && app.beginUndoGroup("Duplicate Folder");
+  __canUndo__ && app.beginUndoGroup("Duplicate Folder");
 
   // new folderList iterate
   newRootFolders.forEach(newFolder => {
@@ -99,7 +101,7 @@ export default (
           if (isFileSource(item.mainSource)) {
             const file = item.mainSource.file;
             if (!file.exists) {
-              $L.error($.line, `${errorName} / not found file`);
+              __Error__($.line, `${errorName} / not found file`);
               return;
             }
             newItem = importFSFile(file, {
@@ -135,7 +137,7 @@ export default (
         }
 
         if (!newItem) {
-          $L.error($.line, `${errorName} / `);
+          __Error__($.line, `${errorName} / `);
           return;
         }
         newItem.parentFolder = parent;
@@ -162,7 +164,7 @@ export default (
         }
       });
     });
-    $I.undo && app.endUndoGroup();
+    __canUndo__ && app.endUndoGroup();
   });
   return newRootFolders;
 };

@@ -8,8 +8,8 @@ import {
   isProperty,
   isPropertyGroup,
   isObject
-} from "./typeCheck";
-import { getAllItems } from "./getEntity";
+} from "../typeCheck";
+import { getAllItems } from "../GetEntity/getEntity";
 
 export const times = (
   step: number,
@@ -30,7 +30,7 @@ export const unselectAllItems = (): void => {
   });
 };
 
-export const computeDurationWithMS = (ms: number): string => {
+export const computeDurationWithMsec = (ms: number): string => {
   const h = parseInt(String(Math.floor(ms / 3600000) + 100).substring(1));
   const m = parseInt(
     String(Math.floor((ms - h * 3600000) / 60000) + 100).substring(1)

@@ -1,12 +1,12 @@
 import "./preProcess.ts";
-import { times } from "./utils/general";
+import { times } from "./utils/Javascript/general";
 import {
   findItemWithName,
   findLayerWithName,
   findPropertyWithName
-} from "./utils/getEntity";
+} from "./utils/GetEntity/getEntity";
 
-import { getItemWithPathArray } from "./utils/getEntityWithPathArray";
+import { getItemWithPathArray } from "./utils/GetEntity/getEntityWithPathArray";
 import {
   isCompItem,
   isFolderItem,

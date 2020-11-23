@@ -1,9 +1,10 @@
+import { __Error__ } from "../initialize";
 import {
   findLayerWithName,
   findPropertyWithName,
   findItemWithName
 } from "./getEntity";
-import { createFolderItem } from "./item";
+import { createFolderItem } from "../item";
 import {
   isCompItem,
   isFolderItem,
@@ -18,8 +19,8 @@ import {
   isAnyProperty,
   isMaskPropertyGroup,
   isAnyItem
-} from "./typeCheck";
-import {} from "./fileSys";
+} from "../typeCheck";
+import {} from "../System/fileSys";
 
 // e.g. return [parentFolder, innerFolder, comp]
 export const getItemAncestors = (
@@ -62,7 +63,10 @@ export const getItemWithPathArray = (
         options
       ) as FolderItem;
     }
-    $L.error($.line, `getItemWithPathArray / not found item / ${pathArray[0]}`);
+    __Error__(
+      $.line,
+      `getItemWithPathArray / not found item / ${pathArray[0]}`
+    );
     return null;
   }
   if (isTarget) return item;
@@ -71,7 +75,7 @@ export const getItemWithPathArray = (
   if (options.stopAtComp && isCompItem(item)) return item;
   if (options.stopAtFootage && isFootageItem(item)) return item;
 
-  $L.error($.line, `getItemWithPathArray / not processed / ${item.name}`);
+  __Error__($.line, `getItemWithPathArray / not processed / ${item.name}`);
   return null;
 };
 
@@ -106,7 +110,7 @@ export const getLayerOrPropertyWithPathArray = (
   options.callback && options.callback(member, pathArray.length);
 
   if (!member) {
-    $L.error(
+    __Error__(
       $.line,
       `getLayerOrPropertyWithPathArray / not found member / ${pathArray[0]}`
     );
@@ -144,7 +148,7 @@ export const getSomethingWithPathArray = (
       callback: (item, length) => (index = pathArray.length - length)
     });
     if (!item) {
-      $L.error(
+      __Error__(
         $.line,
         `getSomethingWithPathArray / not found something / ${pathArray[0]}`
       );

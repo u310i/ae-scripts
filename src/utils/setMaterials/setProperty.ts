@@ -1,4 +1,5 @@
-import { findPropertyWithName } from "../getEntity";
+import { __Error__ } from "../initialize";
+import { findPropertyWithName } from "../GetEntity/getEntity";
 import {
   isProperty,
   isPropertyGroup,
@@ -28,7 +29,7 @@ const setProperty = (
           if (isFunction(parent[key]) && isCompItem(material)) {
             parent.replaceSource(material, false);
           } else {
-            $L.error(
+            __Error__(
               $.line,
               `setProperty / maby material is not CompItem / key is ${key}`
             );
@@ -38,7 +39,7 @@ const setProperty = (
     }
     const property = findPropertyWithName(key, parent);
     if (!property) {
-      $L.error($.line, `setProperty / property is not found / key is ${key}`);
+      __Error__($.line, `setProperty / property is not found / key is ${key}`);
       return;
     }
     if (isPropertyGroup(property) || isMaskPropertyGroup(property)) {
@@ -50,7 +51,7 @@ const setProperty = (
 
     if (isProperty(property)) {
       if (property.propertyValueType === PropertyValueType.NO_VALUE) {
-        $L.error(
+        __Error__(
           $.line,
           `setProperty / property is NO_VALUE / material is ${material}`
         );

@@ -1,8 +1,8 @@
 // import "date-polyfill";
 import "./polyfill";
 // import "airbnb-js-shims";
-import log from "./utils/log";
-import { deleteFSFile } from "./utils/fileSys";
+import { writeInit } from "./utils/System/log";
+import { deleteFSFile } from "./utils/System/fileSys";
 
 /**
  * http://docs.aenhancers.com/general/application/#app-saveprojectoncrash
@@ -17,14 +17,14 @@ import { deleteFSFile } from "./utils/fileSys";
 app.project.bitsPerChannel = 16;
 app.project.expressionEngine = "javascript-1.0";
 
-$L = {
-  error: log.writeError
-};
+// $L = {
+//   error: log.writeError
+// };
 
-$I = {
-  undo: false
-};
+// $I = {
+//   undo: false
+// };
 
 deleteFSFile("init_log.txt");
 deleteFSFile("log.txt");
-log.writeInit();
+writeInit();

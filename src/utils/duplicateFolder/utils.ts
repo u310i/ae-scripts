@@ -1,16 +1,107 @@
-import { times } from "../general";
-import { getItems, getLayers } from "../getEntity";
-import { getItemAncestorsName } from "../getEntityWithPath";
-import { getItemWithPathArray } from "../getEntityWithPathArray";
+import { __Error__ } from "../initialize";
+import { times } from "../Javascript/general";
+import { getItems, getLayers } from "../GetEntity/getEntity";
+import { getItemAncestorsName } from "../GetEntity/getEntityWithPath";
+import { getItemWithPathArray } from "../GetEntity/getEntityWithPathArray";
 import { createFolderItem } from "../item";
 import {
   isCompItem,
   isFolderItem,
   isFootageItem,
   isAVLayer,
-  isObject
+  isObject,
+  isFileSource,
+  isSolidSource
 } from "../typeCheck";
-import { FolderStructType } from "../item";
+
+export const deepCompCopy = (
+  comp: CompItem,
+  replaceLayers?: AVLayer[]
+): undefined => {
+  if (!isCompItem(comp)) {
+    __Error__($.line, "deepCompCopy");
+    return;
+  }
+
+  const newComp = comp.duplicate();
+
+  if (replaceLayers) {
+    replaceLayers.forEach(layer => {
+      layer.replaceSource(newComp, false);
+    });
+  }
+
+  const replaceLayerLists = [] as { comp: CompItem; layers: AVLayer[] }[];
+
+  getLayers(newComp).forEach((layer, index) => {
+    if (isAVLayer(layer) && layer.source && layer.source instanceof CompItem) {
+      const currentComp = layer.source;
+      const compIndex = replaceLayerLists.findIndex(
+        set => set.comp === currentComp
+      );
+
+      if (compIndex === -1) {
+        replaceLayerLists.push({
+          comp: currentComp,
+          layers: [layer]
+        });
+      } else {
+        replaceLayerLists[compIndex].layers.push(layer);
+      }
+    }
+  });
+
+  replaceLayerLists.forEach(set => {
+    deepCompCopy(set.comp, set.layers);
+  });
+};
+
+export type FolderStructType = {
+  [key: string]: CompItem | FootageItem | FolderStructType | FolderItem;
+};
+
+export const createFolderStruct = (
+  parent: FolderItem = app.project.rootFolder,
+  appendFolder: boolean = false
+): FolderStructType => {
+  const struct: FolderStructType = {};
+
+  getItems(parent).forEach(item => {
+    if (appendFolder) struct["$$parent"] = parent;
+    if (isFolderItem(item)) {
+      struct[item.name] = createFolderStruct(item);
+    } else {
+      struct[item.name] = item;
+    }
+  });
+
+  return struct;
+};
+
+// const struct = createFolderStruct(app.project.rootFolder, true);
+// alert(JSON.stringify(visualizeStruct(struct), null, "  "));
+type VisualizeStruct = { [key: string]: string | VisualizeStruct };
+export const visualizeStruct = (struct: FolderStructType): VisualizeStruct => {
+  const vizStruct: VisualizeStruct = {};
+  Object.keys(struct).forEach(key => {
+    const item = struct[key];
+    if (key === "$$parent") return;
+    if (isFootageItem(item)) {
+      if (isFileSource(item.mainSource)) {
+        vizStruct[key] = `footage / file`;
+      } else if (isSolidSource(item.mainSource)) {
+        vizStruct[key] = `footage / solid`;
+      } else {
+        vizStruct[key] = `footage / not file or solid`;
+      }
+    } else if (isCompItem(item)) {
+      vizStruct[key] = `comp`;
+    } else if (isObject(item) && !isFolderItem(item)) {
+      vizStruct[key] = visualizeStruct(item);
+    }
+  });
+  return vizStruct;
+};
 
 export const matchSuffixNum = (str: string): RegExpMatchArray | null => {
   return str.match(/[0-9]*$/);
@@ -29,13 +120,13 @@ export const getMaxSuffixNumItemName = (
 
     const regexp = new RegExp("^" + matchName + "\\s*[0-9]*$");
     if (!regexp.test(item.name)) {
-      $L.error($.line, "getMaxSuffixNumItemName");
+      __Error__($.line, "getMaxSuffixNumItemName");
       return;
     }
 
     const matchArr = matchSuffixNum(item.name);
     if (!matchArr) {
-      $L.error($.line, "getMaxSuffixNumItemName");
+      __Error__($.line, "getMaxSuffixNumItemName");
       return;
     }
 
@@ -72,7 +163,7 @@ export const createFoldersWithSuffixNum = (
 ): FolderItem[] | undefined => {
   const match = matchSuffixNum(name);
   if (!match) {
-    $L.error($.line, "createFoldersWithSuffixNum");
+    __Error__($.line, "createFoldersWithSuffixNum");
     return;
   }
   const parent = options.parent || app.project.rootFolder;
@@ -150,7 +241,7 @@ export const replaceLayerIfInsideTarget = (
           targetFolder
         ) as AVItem;
         if (!newSource) {
-          $L.error($.line, "replaceLayerIfInsideTarget / not found newSource");
+          __Error__($.line, "replaceLayerIfInsideTarget / not found newSource");
           return;
         }
 

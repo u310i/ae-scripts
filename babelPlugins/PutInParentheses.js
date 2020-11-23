@@ -1,6 +1,8 @@
+const count = 0;
+
 module.exports = ({ types: t }) => {
   return {
-    name: "TransformConditionalExpressionAlternateWithParentheses",
+    name: "PutInParentheses",
     visitor: {
       ConditionalExpression: path => {
         path.node.consequent = t.parenthesizedExpression(path.node.consequent);

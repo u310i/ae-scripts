@@ -1,4 +1,5 @@
-import { findItemWithName, findLayerWithName } from "../getEntity";
+import { __canUndo__, __Error__ } from "../initialize";
+import { findItemWithName, findLayerWithName } from "../GetEntity/getEntity";
 import { isCompItem, isFolderItem, isObject } from "../typeCheck";
 import { isMaterials } from "./utils";
 import setMaterialsToLayer from "./setProperty";
@@ -72,16 +73,16 @@ const setMaterials = (
   parent: FolderItem | CompItem = app.project.rootFolder
 ): void => {
   if (!isMaterials(materials)) {
-    $L.error($.line, `setMaterials / materials is not parent Materials`);
+    __Error__($.line, `setMaterials / materials is not parent Materials`);
     return;
   }
 
-  $I.undo && app.beginUndoGroup("setMaterials");
+  __canUndo__ && app.beginUndoGroup("setMaterials");
 
   Object.keys(materials).forEach((key, i) => {
     const childMaterials = materials[key];
     if (!isMaterials(childMaterials)) {
-      $L.error(
+      __Error__(
         $.line,
         `setMaterials / materials is not Materials / materials is ${key}`
       );
@@ -90,7 +91,7 @@ const setMaterials = (
     if (isFolderItem(parent)) {
       const item = findItemWithName(key, parent);
       if (!item) {
-        $L.error($.line, `setMaterials / item is not found / key is ${key}`);
+        __Error__($.line, `setMaterials / item is not found / key is ${key}`);
         return;
       }
 
@@ -108,7 +109,7 @@ const setMaterials = (
     if (isCompItem(parent)) {
       const layer = findLayerWithName(key, parent);
       if (!layer) {
-        $L.error($.line, `setMaterials / layer is not found / key is ${key}`);
+        __Error__($.line, `setMaterials / layer is not found / key is ${key}`);
         return;
       }
       if (isMaterials(childMaterials)) {
@@ -117,10 +118,10 @@ const setMaterials = (
       return;
     }
 
-    $L.error($.line, `setMaterials / not folder or comp / key is ${key}`);
+    __Error__($.line, `setMaterials / not folder or comp / key is ${key}`);
   });
 
-  $I.undo && app.endUndoGroup();
+  __canUndo__ && app.endUndoGroup();
 };
 
 export default setMaterials;

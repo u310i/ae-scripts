@@ -3,13 +3,15 @@ declare module "zero-fill" {
   export = zeroFill;
 }
 
-declare var $L: {
-  error: $T.Log.WriteError;
-};
+declare module "globalThis";
 
-declare var $I: {
-  undo: boolean;
-};
+// declare var $L: {
+//   error: $T.Log.WriteError;
+// };
+
+// declare var $I: {
+//   undo: boolean;
+// };
 
 interface RenderQueueItem {
   onStatusChanged: () => void | null;
@@ -21,4 +23,7 @@ interface Application {
 
 interface Project {
   expressionEngine: "javascript-1.0" | "extendscript";
+  itemByID: (id: number) => Item;
 }
+
+declare var __BuildName__: any;

@@ -1,5 +1,5 @@
 import pref from "./pref";
-import { isFolderItem, isCompItem } from "./typeCheck";
+import { isFolderItem, isCompItem } from "../typeCheck";
 
 export const isFSFile = (data: File | Folder): data is File => {
   return data instanceof File;
@@ -20,7 +20,7 @@ export const getFSFile = (fileName: string): File => {
 export const getExistingFile = (fileName: string): File | null => {
   const file = getFSFile(fileName);
   if (!file.exists) {
-    $L.error($.line, `getFSFile / File is not exists / name: ${fileName}`);
+    alert(`${$.line}\ngetFSFile / File is not exists / name: ${fileName}`);
     return null;
   }
   return file;
@@ -33,9 +33,8 @@ export const getFSFolder = (folderName: string): Folder => {
 export const getExistingFSFolder = (folderName: string): Folder | null => {
   const folder = getFSFolder(folderName);
   if (!folder.exists) {
-    $L.error(
-      $.line,
-      `getFSFolder / Folder is not exists / name: ${folderName}`
+    alert(
+      `${$.line}\ngetFSFolder / Folder is not exists / name: ${folderName}`
     );
     return null;
   }
@@ -96,7 +95,7 @@ export const importFSFile = (
   options: ImportFileOptions = {}
 ): Item | null => {
   if (!file.exists) {
-    $L.error($.line, `importFSFile / file is not exists / name: ${file.name}`);
+    alert(`${$.line}\nimportFSFile / file is not exists / name: ${file.name}`);
     return null;
   }
 
@@ -114,17 +113,15 @@ export const importFSFile = (
   const io = new ImportOptions(file);
 
   if (options.callback && !options.callback(io.file)) {
-    $L.error(
-      $.line,
-      `importFSFile / file is not match on callback / ${io.file.name}`
+    alert(
+      `${$.line}\nimportFSFile / file is not match on callback / ${io.file.name}`
     );
     return null;
   }
   io.sequence = !!options.sequence;
   io.forceAlphabetical = !!options.forceAlphabetical;
   if (!io.canImportAs(ImportAsType[type])) {
-    $L.error(
-      $.line,
+    alert(
       `importFSFile / ${ImportAsType[type]} type is can not import / ${io.file.name}`
     );
     return null;
@@ -158,10 +155,7 @@ export const importFSFilesWithName = (
     return false;
   }) as File[];
   if (!files || files.length === 0) {
-    $L.error(
-      $.line,
-      `importFSFilesWithName / files is not exists / ${folderName}`
-    );
+    alert(`importFSFilesWithName / files is not exists / ${folderName}`);
     return null;
   }
 
@@ -173,10 +167,7 @@ export const importFSFilesWithName = (
     items.push(item);
   });
   if (items.length === 0) {
-    $L.error(
-      $.line,
-      `importFSFilesWithName / items is not exists / ${folderName}`
-    );
+    alert(`importFSFilesWithName / items is not exists / ${folderName}`);
     return null;
   }
   return items;

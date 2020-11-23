@@ -1,3 +1,4 @@
+import { __Error__ } from "./initialize";
 import { isProperty } from "./typeCheck";
 import constants from "../constants";
 
@@ -42,7 +43,7 @@ export const genFade = (
     .property("ADBE Opacity");
 
   if (!isProperty(opacity)) {
-    $L.error(
+    __Error__(
       $.line,
       `genFade / not found Property / layer name: ${layer.name}`
     );

@@ -1,4 +1,4 @@
-import { getLayers } from "./getEntity";
+import { getLayers } from "./GetEntity/getEntity";
 
 export const sequenceLayers = (
   comp: CompItem,

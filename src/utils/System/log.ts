@@ -1,6 +1,6 @@
 import { writeTextFile } from "./fileSys";
-import { getNowJSTDate } from "./date";
-import { computeDurationWithMS } from "./general";
+import { getNowJSTDate } from "../Javascript/date";
+import { computeDurationWithMsec } from "../Javascript/general";
 
 type JSONValue = string | number | null | boolean | undefined;
 type JSONObject = {
@@ -11,7 +11,7 @@ const JsonReplacer = (key: string, value: any) => {
   return typeof value === "undefined" ? "undefined" : value;
 };
 
-const writeLog = (
+export const writeLog = (
   name: string,
   contents: JSONObject,
   options: {
@@ -26,7 +26,7 @@ const writeLog = (
   return writeTextFile(name, str, options);
 };
 
-const writeInit = (name: string = "init_log.txt"): boolean | null => {
+export const writeInit = (name: string = "init_log.txt"): boolean | null => {
   const initLogFormat = {
     level: "INIT",
     appBuild: app.buildName,
@@ -44,34 +44,15 @@ const writeInit = (name: string = "init_log.txt"): boolean | null => {
   return writeLog(name, initLogFormat, { mode: "w", ln: true });
 };
 
-type WriteError = (
+export const writeErrorLog = (
   line: number,
-  functionName: string,
-  options?: {
-    description?: string;
-    variables?: JSONObject;
-  },
-  name?: string
-) => boolean | null;
-
-const writeError: WriteError = (
-  line,
-  description,
-  options = {},
+  description: string,
   name = "log.txt"
-) => {
+): boolean | null => {
   const errorLogFomat: JSONObject = {
     level: "ERROR",
     line: line,
     description
   };
-  if (options.variables) errorLogFomat.variables = options.variables;
-
   return writeLog(name, errorLogFomat, { mode: "a", ln: true });
-};
-
-export default {
-  writeLog,
-  writeInit,
-  writeError
 };

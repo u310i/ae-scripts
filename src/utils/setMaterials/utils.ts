@@ -1,4 +1,4 @@
-import { findPropertyWithName } from "../getEntity";
+import { findPropertyWithName } from "../GetEntity/getEntity";
 import {
   isProperty,
   isPropertyGroup,

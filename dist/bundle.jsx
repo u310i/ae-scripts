@@ -1701,9 +1701,6 @@
   var getFSPath = function getFSPath(name) {
     return new File($.fileName).path + "/" + encodeURI(name);
   };
-  var getFSFile = function getFSFile(fileName) {
-    return new File(getFSPath(fileName));
-  };
   var writeTextFile = function writeTextFile(textFileName, content) {
     var options = arguments.length > 2 && ((arguments[2] !== undefined)) ? ((arguments[2])) : (({}));
     var mode = options.mode || ("w");
@@ -1775,7 +1772,6 @@
     var str = header + JSON.stringify(contentsForJSON, JsonReplacer, "  ") + "\n";
     return writeTextFile(name, str, options);
   };
-
   var writeInit = function writeInit() {
     var name = arguments.length > 0 && ((arguments[0] !== undefined)) ? ((arguments[0])) : (("init_log.txt"));
     var initLogFormat = {
@@ -1797,27 +1793,6 @@
     });
   };
 
-  var writeError = function writeError(line, description) {
-    var options = arguments.length > 2 && ((arguments[2] !== undefined)) ? ((arguments[2])) : (({}));
-    var name = arguments.length > 3 && ((arguments[3] !== undefined)) ? ((arguments[3])) : (("log.txt"));
-    var errorLogFomat = {
-      level: "ERROR",
-      line: line,
-      description: description
-    };
-    if (options.variables) errorLogFomat.variables = options.variables;
-    return writeLog(name, errorLogFomat, {
-      mode: "a",
-      ln: true
-    });
-  };
-
-  var log = {
-    writeLog: writeLog,
-    writeInit: writeInit,
-    writeError: writeError
-  };
-
   // import "date-polyfill";
   /**
    * http://docs.aenhancers.com/general/application/#app-saveprojectoncrash
@@ -1830,165 +1805,41 @@
   // app.beginSuppressDialogs()
 
   app.project.bitsPerChannel = 16;
-  app.project.expressionEngine = "javascript-1.0";
-  $L = {
-    error: log.writeError
-  };
-  $I = {
-    undo: false
-  };
+  app.project.expressionEngine = "javascript-1.0"; // $L = {
+  //   error: log.writeError
+  // };
+  // $I = {
+  //   undo: false
+  // };
+
   deleteFSFile("init_log.txt");
   deleteFSFile("log.txt");
-  log.writeInit();
-
-  var times = function times(step, callback) {
-    for (var i = 1; i <= step; i++) {
-      if (callback(i)) {
-        break;
-      } else {
-        continue;
-      }
-    }
-  };
-
-  var isFolderItem = function isFolderItem(item) {
-    return item instanceof FolderItem;
-  };
-  var isCompItem = function isCompItem(item) {
-    return item instanceof CompItem;
-  };
-  var isFootageItem = function isFootageItem(item) {
-    return item instanceof FootageItem;
-  };
-  var isAnyItem = function isAnyItem(item) {
-    return isCompItem(item) || (isFolderItem(item)) || (isFootageItem(item));
-  };
-
-  var getItems = function getItems(folder, callback) {
-    var items = [];
-    times(folder.numItems, function (index) {
-      var item = folder.item(index);
-      if (callback && (!callback(item))) return;
-      items.push(item);
-    });
-    return items;
-  };
-  var findItemWithName = function findItemWithName(name) {
-    var parent = arguments.length > 1 && ((arguments[1] !== undefined)) ? ((arguments[1])) : ((app.project.rootFolder));
-    var item = null;
-    getItems(parent).forEach(function (current) {
-      if (current.name === name) {
-        if (isAnyItem(current)) item = current;
-        return true;
-      }
-    });
-    return item;
-  };
-  var findCompItemWithName = function findCompItemWithName(name) {
-    var parent = arguments.length > 1 && ((arguments[1] !== undefined)) ? ((arguments[1])) : ((app.project.rootFolder));
-    var item = findItemWithName(name, parent);
-
-    if (!isCompItem(item)) {
-      $L.error($.line, "findCompItemWithName / not found CompItem / name: ".concat(name, " / parent: ").concat(parent.name, " / item: ").concat(item ? (item.name) : ("null")));
-      return null;
-    }
-
-    return item;
-  };
-
-  var getRQItemStatus = function getRQItemStatus(item) {
-    var status = "";
-
-    switch (item.status) {
-      case RQItemStatus.WILL_CONTINUE:
-        status = "WILL_CONTINUE";
-        break;
-
-      case RQItemStatus.NEEDS_OUTPUT:
-        status = "NEEDS_OUTPUT";
-        break;
-
-      case RQItemStatus.UNQUEUED:
-        status = "UNQUEUED";
-        break;
-
-      case RQItemStatus.QUEUED:
-        status = "QUEUED";
-        break;
-
-      case RQItemStatus.RENDERING:
-        status = "RENDERING";
-        break;
-
-      case RQItemStatus.USER_STOPPED:
-        status = "USER_STOPPED";
-        break;
-
-      case RQItemStatus.ERR_STOPPED:
-        status = "ERR_STOPPED";
-        break;
-
-      case RQItemStatus.DONE:
-        status = "DONE";
-        break;
-    }
-
-    return status;
-  };
-  var addRenderQueue = function addRenderQueue(compItem) {
-    var relPath = arguments.length > 1 && ((arguments[1] !== undefined)) ? ((arguments[1])) : (("./render/output.avi"));
-    var options = arguments.length > 2 && ((arguments[2] !== undefined)) ? ((arguments[2])) : (({}));
-    var renderQueue = app.project.renderQueue;
-    renderQueue.items.add(compItem);
-    var RQItem = renderQueue.item(renderQueue.numItems);
-    RQItem.applyTemplate(options.renderTemplate || ("Best Settings"));
-    var moduleItem = RQItem.outputModule(RQItem.numOutputModules);
-    moduleItem.applyTemplate(options.moduleTemplate || ("Lossless"));
-    var file = getFSFile(relPath);
-    if (file.exists) file.remove();
-    moduleItem.file = file;
-    moduleItem.includeSourceXMP = false;
-    var statusChanged = options.statusChanged;
-
-    if (statusChanged) {
-      RQItem.onStatusChanged = function () {
-        statusChanged(RQItem, getRQItemStatus(RQItem));
-      };
-    }
-
-    var logType = options.logType;
-    if (logType) RQItem.logType = LogType[logType];
-    return RQItem;
-  };
+  writeInit();
 
   // & 'C:\Program Files\Adobe\Adobe After Effects 2020\Support Files\aerender' -project 'D:\Documents\Projects\myProjects\AE_Scripts\dist\testInitFolderStruct.aep'
+  // memo: afterfx.exe -r E:\Projects\myProjects\adobe\ae-scripts\dist\bundle.jsx
 
-  var fn = function fn() {
-    // initGenStruct(struct);
-    var renderComp = findCompItemWithName("$root");
+  var main = function main() {
+    // generateProps
+    // const item = app.project.activeItem;
+    // if (item === null) {
+    //   alert("null desu");
+    // } else {
+    //   const a = prompt("prompt", "");
+    //   alert(item.name + ": " + a);
+    // }
+    alert("default");
+    /**
+    // projectA
+    initGenStruct(struct);
+     const renderComp = findCompItemWithName("$root");
     if (!renderComp) return;
     addRenderQueue(renderComp);
+     postProcess(renderComp);
+    */
   };
 
-  fn(); // const file = new File("aaaaa");
-  // alertType(file);
-  // const partLayer = getSomethingWithPath("$root/$part_1") as $T.ADBE.AnyLayer;
-  // genFade(partLayer, "in", 1);
-  // genFade(partLayer, "out", 2);
-  // const members = (app.project.activeItem as CompItem).selectedProperties;
-  // alertType(members[0]);
-  // const root = app.project.rootFolder;
-  // const item = root.item(100);
-  // alert(item.name);
-  // const sourceFolder = getSomethingWithPath("main/short") as FolderItem;
-  // duplicateFolder(sourceFolder, {
-  //   name: "end",
-  //   suffix: false
-  // });
-  // const thing = getSomethingWithPath(
-  //   "1_templates/simple/short/parent/text/Text/Source Text"
-  // );
-  // alertType(thing);
+  main();
 
 }());
 //# sourceMappingURL=bundle.jsx.map

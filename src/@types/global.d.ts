@@ -1,6 +1,25 @@
 import ".";
 
 declare global {
+  // for UI ex) w.btn
+  interface TempWindow extends Window {
+    alignChildren: any;
+  }
+  interface CWindow extends TempWindow {
+    alignChildren: string | string[];
+    preferredSize: any;
+    [key: string]: any;
+  }
+
+  interface TempGroup extends Group {
+    alignChildren: any;
+  }
+  interface CGroup extends TempGroup {
+    alignChildren: string | string[];
+    preferredSize: any;
+    [key: string]: any;
+  }
+
   export namespace $T {
     type DeepPartial<T> = T extends object
       ? {

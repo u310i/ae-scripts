@@ -1,4 +1,5 @@
-import { times } from "../general";
+import { __Error__ } from "../initialize";
+import { times } from "../Javascript/general";
 import { sequenceLayers } from "../layer";
 import { createCompItem, createFolderItem } from "../item";
 import {
@@ -9,7 +10,7 @@ import {
   findFolderItemWithName,
   findLayerWithName,
   findPropertyWithName
-} from "../getEntity";
+} from "../GetEntity/getEntity";
 import {
   isFolderItem,
   isCompItem,
@@ -25,8 +26,8 @@ import {
   isFSFile,
   getExistingFSFolder,
   getFSFolderContents
-} from "../fileSys";
-import duplicateFolder from "../duplicateFolder";
+} from "../System/fileSys";
+import duplicateFolder from "../DuplicateFolder";
 import constants from "../../constants";
 import { genFade } from "../keyframe";
 
@@ -54,12 +55,12 @@ const sceneRootName = "2_scene";
 
 export default ($$struct: $T.Struct.Struct): void => {
   if (findItemWithName(templateRootName) || findItemWithName(sceneRootName)) {
-    $L.error($.line, `initGenStruct / Folder already exists`);
+    __Error__($.line, `initGenStruct / Folder already exists`);
     return;
   }
   const $$partsStruct = $$struct.parts;
   if ($$partsStruct.length === 0) {
-    $L.error($.line, `initGenStruct / not exist struct $$partsStruct`);
+    __Error__($.line, `initGenStruct / not exist struct $$partsStruct`);
     return;
   }
 
@@ -82,14 +83,14 @@ export default ($$struct: $T.Struct.Struct): void => {
    */
   $$partsStruct.forEach(($$partStruct, partIndex) => {
     if (!$$partStruct.project) {
-      $L.error(
+      __Error__(
         $.line,
         `initGenStruct / not found project / partIndex: ${partIndex}`
       );
       return;
     }
     if ($$partStruct.cuts.length === 0) {
-      $L.error(
+      __Error__(
         $.line,
         `initGenStruct / not found cut / project: ${$$partStruct.project}`
       );
@@ -118,7 +119,7 @@ export default ($$struct: $T.Struct.Struct): void => {
      */
     $$partStruct.cuts.forEach(($$cutStruct, cutIndex) => {
       if (!$$cutStruct.name) {
-        $L.error(
+        __Error__(
           $.line,
           `initGenStruct / not found cut name / project: ${$$partStruct.project}`
         );
@@ -141,7 +142,7 @@ export default ($$struct: $T.Struct.Struct): void => {
         parent: newPartFolder
       });
       if (!_newCutFolders || !isFolderItem(_newCutFolders[0])) {
-        $L.error(
+        __Error__(
           $.line,
           `initGenStruct / not found _newCutFolders / cut name: ${$$cutStruct.name}`
         );
@@ -177,7 +178,7 @@ export default ($$struct: $T.Struct.Struct): void => {
       if (
         $$replaceStruct.images.length !== replaceSourceImagesFolder.numItems
       ) {
-        $L.error(
+        __Error__(
           $.line,
           `initGenStruct / number is not match images of cutFolder and replaceStruct / cut name: ${$$cutStruct.name}`
         );
@@ -193,7 +194,7 @@ export default ($$struct: $T.Struct.Struct): void => {
         !replaceTargetImageFSFiles ||
         replaceTargetImageFSFiles.length === 0
       ) {
-        $L.error(
+        __Error__(
           $.line,
           `initGenStruct / not found image replaceTargetImageFSFiles /  / name: ${$$cutStruct.name}`
         );
@@ -205,7 +206,7 @@ export default ($$struct: $T.Struct.Struct): void => {
        */
       getItems(replaceSourceImagesFolder).forEach((item, index) => {
         if (!isFootageItem(item) || !isFileSource(item.mainSource)) {
-          $L.error(
+          __Error__(
             $.line,
             `initGenStruct / item is not found on replaceSourceImagesFolder / name: ${item.name}`
           );
@@ -214,7 +215,7 @@ export default ($$struct: $T.Struct.Struct): void => {
 
         const newImageIndex = parseInt(item.comment);
         if (!isNumber(newImageIndex)) {
-          $L.error(
+          __Error__(
             $.line,
             `initGenStruct / image name is not number on replaceSourceImagesFolder / name: ${item.name}`
           );
@@ -222,7 +223,7 @@ export default ($$struct: $T.Struct.Struct): void => {
         }
         const $replaceImageObj = $$replaceStruct.images[newImageIndex - 1];
         if (!$replaceImageObj || !$replaceImageObj.name) {
-          $L.error(
+          __Error__(
             $.line,
             `initGenStruct / not found image name from replaceObj / name: ${item.name}`
           );
@@ -233,7 +234,7 @@ export default ($$struct: $T.Struct.Struct): void => {
           fileOrFolder => fileOrFolder.name === $replaceImageObj.name
         );
         if (replaceTargetImageFSFile === undefined) {
-          $L.error(
+          __Error__(
             $.line,
             `initGenStruct / not found image replaceTargetImageFSFile / name: ${item.name}`
           );

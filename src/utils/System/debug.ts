@@ -1,5 +1,5 @@
-import {} from "./general";
-import {} from "./getEntity";
+import {} from "../Javascript/general";
+import {} from "../GetEntity/getEntity";
 import { isFSFile, isFSFolder } from "./fileSys";
 import {
   // Item
@@ -38,8 +38,11 @@ import {
   isNumber,
   isString,
   isBoolean
-} from "./typeCheck";
-import { getRQItemStatus } from "./render";
+} from "../typeCheck";
+import { getRQItemStatus } from "../render";
+
+import { getActiveItem } from "../GetEntity/activeItem";
+import { getSelectedProperties } from "../GetEntity/getSelectedEntity";
 
 export const alertType = (value: any): void => {
   if (isUndefined(value) || value === null) {
@@ -90,37 +93,8 @@ export const alertType = (value: any): void => {
     alert("Folder: " + value.name + " exists: " + value.exists);
 };
 
-export const getSelectedItem = (): $T.ADBE.AnyItem | null => {
-  const item = app.project.activeItem;
-  return (item as $T.ADBE.AnyItem) || null;
-};
-
-export const getSelectedLayesr = (compItem: CompItem): Layer[] | null => {
-  const layers = compItem.selectedLayers;
-  return layers[0] ? layers : null;
-};
-
-export const getSelectedProperties = (
-  compItem: CompItem
-): $T.ADBE.AnyProperty[] | null => {
-  const properties = compItem.selectedProperties as
-    | $T.ADBE.AnyProperty[]
-    | null;
-  return properties && properties[0] ? properties : null;
-};
-
-export const getSelectedCompProperty = (): $T.ADBE.AnyProperty | null => {
-  const item = getSelectedItem();
-  let property: $T.ADBE.AnyProperty | null = null;
-  if (item instanceof CompItem) {
-    const properties = getSelectedProperties(item);
-    property = properties && properties[0];
-  }
-  return property;
-};
-
-export const alertSelectedCompPropertyMatchName = (): void => {
-  const item = getSelectedItem();
+export const alertActiveCompPropertyMatchName = (): void => {
+  const item = getActiveItem();
   if (item instanceof CompItem) {
     const properties = getSelectedProperties(item);
     const property = properties && properties[0];

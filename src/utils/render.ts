@@ -1,4 +1,4 @@
-import { getFSFile, getFSPath } from "./fileSys";
+import { getFSFile, getFSPath } from "./System/fileSys";
 
 export type RQItemStatusKeys = keyof typeof RQItemStatus | "";
 

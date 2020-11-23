@@ -1,4 +1,5 @@
-import { times } from "./general";
+import { __Error__ } from "../initialize";
+import { times } from "../Javascript/general";
 import {
   isCompItem,
   isFolderItem,
@@ -15,11 +16,21 @@ import {
   isAnyItem,
   isTextLayer,
   isShapeLayer
-} from "./typeCheck";
-import {} from "./fileSys";
+} from "../typeCheck";
+import {} from "../System/fileSys";
+
+export const getActiveItem = (): $T.ADBE.AnyItem | null => {
+  const item = app.project.activeItem;
+  return (item as $T.ADBE.AnyItem) || null;
+};
+
+export const getActiveCompItem = (): CompItem | null => {
+  const item = getActiveItem();
+  return item instanceof CompItem ? item : null;
+};
 
 export const getItems = (
-  folder: FolderItem,
+  folder: FolderItem = app.project.rootFolder,
   callback?: (item: $T.ADBE.AnyItem) => boolean
 ): $T.ADBE.AnyItem[] => {
   const items: $T.ADBE.AnyItem[] = [];
@@ -51,7 +62,7 @@ export const findFolderItemWithName = (
 ): FolderItem | null => {
   const item = findItemWithName(name, parent);
   if (!isFolderItem(item)) {
-    $L.error(
+    __Error__(
       $.line,
       `findFolderItemWithName / not found FolderItem / name: ${name} / parent: ${
         parent.name
@@ -68,7 +79,7 @@ export const findCompItemWithName = (
 ): CompItem | null => {
   const item = findItemWithName(name, parent);
   if (!isCompItem(item)) {
-    $L.error(
+    __Error__(
       $.line,
       `findCompItemWithName / not found CompItem / name: ${name} / parent: ${
         parent.name
@@ -85,7 +96,7 @@ export const findFootageItemWithName = (
 ): FootageItem | null => {
   const item = findItemWithName(name, parent);
   if (!isFootageItem(item)) {
-    $L.error(
+    __Error__(
       $.line,
       `findFootageItemWithName / not found FootageItem / name: ${name} / parent: ${
         parent.name
@@ -110,7 +121,7 @@ export const findAVLayerWithName = (
 ): AVLayer | null => {
   const layer = findLayerWithName(name, comp);
   if (!isAVLayer(layer)) {
-    $L.error(
+    __Error__(
       $.line,
       `findAVLayerWithName / not found AVLayer / name: ${name} / comp: ${
         comp.name
@@ -127,7 +138,7 @@ export const findTextLayerWithName = (
 ): TextLayer | null => {
   const layer = findLayerWithName(name, comp);
   if (!isTextLayer(layer)) {
-    $L.error(
+    __Error__(
       $.line,
       `findTextLayerWithName / not found TextLayer / name: ${name} / comp: ${
         comp.name
