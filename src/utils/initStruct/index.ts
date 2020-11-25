@@ -3,7 +3,7 @@ import { times } from "../Javascript/general";
 import { sequenceLayers } from "../layer";
 import { createCompItem, createFolderItem } from "../item";
 import {
-  getItems,
+  getChildItems,
   getLayers,
   findItemWithName,
   findCompItemWithName,
@@ -204,7 +204,7 @@ export default ($$struct: $T.Struct.Struct): void => {
       /**
        * iterate imageFolder
        */
-      getItems(replaceSourceImagesFolder).forEach((item, index) => {
+      getChildItems(replaceSourceImagesFolder).forEach((item, index) => {
         if (!isFootageItem(item) || !isFileSource(item.mainSource)) {
           __Error__(
             $.line,

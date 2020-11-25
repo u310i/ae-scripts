@@ -17,24 +17,31 @@ export const setButton = dialog.add("button", undefined, undefined, {
 });
 setButton.text = "set source";
 
-// idGroup
+// setNameGroup
 // ======
-export const idGroup = dialog.add("group", undefined, { name: "idGroup" });
-idGroup.orientation = "row";
-idGroup.alignChildren = ["left", "center"];
-idGroup.spacing = 10;
-idGroup.margins = 0;
-
-export const idDescription = idGroup.add("statictext", undefined, undefined, {
-  name: "idDescription"
+export const setNameGroup = dialog.add("group", undefined, {
+  name: "setNameGroup"
 });
-idDescription.text = "ID: ";
+setNameGroup.orientation = "row";
+setNameGroup.alignChildren = ["left", "center"];
+setNameGroup.spacing = 10;
+setNameGroup.margins = 0;
 
-export const idText = idGroup.add("edittext", undefined, undefined, {
-  name: "idText"
+export const setNameDedscription = setNameGroup.add(
+  "statictext",
+  undefined,
+  undefined,
+  {
+    name: "setNameDedscription"
+  }
+);
+setNameDedscription.text = "name: ";
+
+export const nameText = setNameGroup.add("statictext", undefined, undefined, {
+  name: "nameText"
 });
-idText.text = "";
-(idText.preferredSize as Dimension).width = 80;
+nameText.text = "";
+(nameText.preferredSize as Dimension).width = 80;
 
 // confirmGroup
 // ======
@@ -45,7 +52,7 @@ confirmGroup.orientation = "row";
 confirmGroup.alignChildren = ["left", "center"];
 confirmGroup.spacing = 10;
 confirmGroup.margins = 0;
-confirmGroup.alignment = ["right", "top"];
+confirmGroup.alignment = ["left", "top"];
 (confirmGroup.preferredSize as Dimension).height = 40;
 
 export const ok = confirmGroup.add("button", undefined, undefined, {

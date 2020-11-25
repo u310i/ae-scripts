@@ -35,10 +35,12 @@
     "watch:EffectController": "rollup -c -w --environment NAME:EffectController",
     "build:ReName": "rollup -c --environment NAME:ReName,BUILD:production",
     "watch:ReName": "rollup -c -w --environment NAME:ReName",
-    "build:TopLayerMarkerToSomething": "rollup -c --environment NAME:TopLayerMarkerToSomething,BUILD:production",
-    "watch:TopLayerMarkerToSomething": "rollup -c -w --environment NAME:TopLayerMarkerToSomething",
+    "build:CopyMarker": "rollup -c --environment NAME:CopyMarker,BUILD:production",
+    "watch:CopyMarker": "rollup -c -w --environment NAME:CopyMarker",
     "build:ReplaceUsingItem": "rollup -c --environment NAME:ReplaceUsingItem,BUILD:production",
-    "watch:ReplaceUsingItem": "rollup -c -w --environment NAME:ReplaceUsingItem"
+    "watch:ReplaceUsingItem": "rollup -c -w --environment NAME:ReplaceUsingItem",
+    "build:UHSAuthor": "rollup -c --environment NAME:UHSAuthor,BUILD:production",
+    "watch:UHSAuthor": "rollup -c -w --environment NAME:UHSAuthor"
   },
   "author": "",
   "license": "ISC"

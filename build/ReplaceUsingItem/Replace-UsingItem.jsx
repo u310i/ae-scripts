@@ -36,25 +36,25 @@ dialog.margins = 16; // setButton
 var setButton = dialog.add("button", undefined, undefined, {
   name: "setButton"
 });
-setButton.text = "set source"; // idGroup
+setButton.text = "set source"; // setNameGroup
 // ======
 
-var idGroup = dialog.add("group", undefined, {
-  name: "idGroup"
+var setNameGroup = dialog.add("group", undefined, {
+  name: "setNameGroup"
 });
-idGroup.orientation = "row";
-idGroup.alignChildren = ["left", "center"];
-idGroup.spacing = 10;
-idGroup.margins = 0;
-var idDescription = idGroup.add("statictext", undefined, undefined, {
-  name: "idDescription"
+setNameGroup.orientation = "row";
+setNameGroup.alignChildren = ["left", "center"];
+setNameGroup.spacing = 10;
+setNameGroup.margins = 0;
+var setNameDedscription = setNameGroup.add("statictext", undefined, undefined, {
+  name: "setNameDedscription"
 });
-idDescription.text = "ID: ";
-var idText = idGroup.add("edittext", undefined, undefined, {
-  name: "idText"
+setNameDedscription.text = "name: ";
+var nameText = setNameGroup.add("statictext", undefined, undefined, {
+  name: "nameText"
 });
-idText.text = "";
-idText.preferredSize.width = 80; // confirmGroup
+nameText.text = "";
+nameText.preferredSize.width = 80; // confirmGroup
 // ======
 
 var confirmGroup = dialog.add("group", undefined, {
@@ -64,7 +64,7 @@ confirmGroup.orientation = "row";
 confirmGroup.alignChildren = ["left", "center"];
 confirmGroup.spacing = 10;
 confirmGroup.margins = 0;
-confirmGroup.alignment = ["right", "top"];
+confirmGroup.alignment = ["left", "top"];
 confirmGroup.preferredSize.height = 40;
 var ok = confirmGroup.add("button", undefined, undefined, {
   name: "ok"
@@ -111,7 +111,7 @@ var isAVLayer = function isAVLayer(layer) {
     }
 
     sourceItem = items[0];
-    idText.text = sourceItem.id.toString();
+    nameText.text = sourceItem.name;
   };
 
   ok.onClick = function () {

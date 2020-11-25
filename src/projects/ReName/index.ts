@@ -60,16 +60,30 @@ const main = () => {
     }
 
     if (addStringCallback !== undefined) {
-      const isName = win.nameRadio.value;
-      const isComment = win.commentRadio.value;
-      if (win.itemRadio.value) {
-        isName && addString("item", "name", addStringCallback);
-        isComment && addString("item", "name", addStringCallback);
-      }
-      if (win.layerRadio.value) {
-        isName && addString("layer", "name", addStringCallback);
-        isComment && addString("layer", "comment", addStringCallback);
-      }
+      const entity = win.itemRadio.value
+        ? "item"
+        : win.layerRadio.value
+        ? "layer"
+        : null;
+      if (!entity) return;
+
+      const source =
+        win.nameRadio.value || win.nameToCommentRadio.value
+          ? "name"
+          : win.commentRadio.value || win.commentToNameRadio.value
+          ? "comment"
+          : null;
+      if (!source) return;
+
+      const target =
+        win.nameRadio.value || win.commentToNameRadio.value
+          ? "name"
+          : win.commentRadio.value || win.nameToCommentRadio.value
+          ? "comment"
+          : null;
+      if (!target) return;
+
+      addString(entity, source, target, addStringCallback);
     }
 
     !win.isPanel && (win.dialog as Window).close();

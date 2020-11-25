@@ -23,7 +23,7 @@ const main = () => {
     }
 
     sourceItem = items[0];
-    win.idText.text = sourceItem.id.toString();
+    win.nameText.text = sourceItem.name;
   };
 
   win.ok.onClick = () => {

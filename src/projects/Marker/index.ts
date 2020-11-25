@@ -4,18 +4,56 @@ import * as win from "./ui";
 import { getSelectedItems } from "../../utils/GetEntity/getSelectedEntity";
 import { times } from "../../utils/Javascript/general";
 import { isAVItem, isAVLayer, isCompItem } from "../../utils/typeCheck";
-import { topLayerMarkerToCompMarker } from "./utils/topLayerMarkerToCompMarker";
-import { topLayerMarkerToTopLayer } from "./utils/topLayerMarkerToTopLayer";
+import {
+  layersToComp,
+  topLayerToAnotherComp,
+  topLayerToAnotherCompTopLayer,
+  removeAllCompMarkers
+} from "./method";
 
 const isCompItems = (items: any): items is CompItem[] => {
   return items.every(isCompItem);
 };
 
 const main = () => {
-  let sourceItem: CompItem;
+  // initialize
+  // ======
+  win.layersToCompRadio.value = true;
+  win.setButton.enabled = false;
+  win.setNameGroup.enabled = false;
 
   // event
   // ======
+
+  win.layersToCompRadio.onActivate = () => {
+    win.setButton.enabled = false;
+    win.setNameGroup.enabled = false;
+  };
+  win.layersToCompRadio.onDeactivate = () => {
+    win.setButton.enabled = true;
+    win.setNameGroup.enabled = true;
+  };
+
+  win.removeAllCompMarkers.onActivate = () => {
+    win.setButton.enabled = false;
+    win.setNameGroup.enabled = false;
+  };
+  win.removeAllCompMarkers.onDeactivate = () => {
+    win.setButton.enabled = true;
+    win.setNameGroup.enabled = true;
+  };
+
+  win.topLayerToAnotherCompRadio.onActivate = () => {
+    win.setButton.enabled = true;
+    win.setNameGroup.enabled = true;
+  };
+
+  win.topLayerToAnotherCompTopLayerRadio.onActivate = () => {
+    win.setButton.enabled = true;
+    win.setNameGroup.enabled = true;
+  };
+
+  let sourceItem: CompItem;
   win.setButton.onClick = () => {
     const items = getSelectedItems();
 
@@ -29,7 +67,7 @@ const main = () => {
     }
     sourceItem = items[0];
 
-    win.idText.text = sourceItem.id.toString();
+    win.nameText.text = sourceItem.name;
   };
 
   win.ok.onClick = () => {
@@ -43,13 +81,25 @@ const main = () => {
       return;
     }
 
-    if (win.topLayerMarkerToCompMarkerRadio.value) {
-      topLayerMarkerToCompMarker(sourceItem, targetItems);
+    app.beginUndoGroup("Copy-Marker");
+
+    if (win.layersToCompRadio.value) {
+      layersToComp(targetItems);
     }
 
-    if (win.topLayerMarkerToTopLayerRadio.value) {
-      topLayerMarkerToTopLayer(sourceItem, targetItems);
+    if (win.topLayerToAnotherCompRadio.value) {
+      topLayerToAnotherComp(sourceItem, targetItems);
     }
+
+    if (win.topLayerToAnotherCompTopLayerRadio.value) {
+      topLayerToAnotherCompTopLayer(sourceItem, targetItems);
+    }
+
+    if (win.removeAllCompMarkers.value) {
+      removeAllCompMarkers(targetItems);
+    }
+
+    app.endUndoGroup();
   };
 
   // ======

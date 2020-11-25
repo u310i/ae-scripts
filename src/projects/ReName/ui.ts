@@ -14,17 +14,17 @@ dialog.alignChildren = ["left", "top"];
 dialog.spacing = 5;
 dialog.margins = 16;
 
-// targetEntytyRadioGroup
+// targetEntityRadioGroup
 // ======
-export const targetEntytyRadioGroup = dialog.add("group", undefined, {
-  name: "targetEntytyRadioGroup"
+export const targetEntityRadioGroup = dialog.add("group", undefined, {
+  name: "targetEntityRadioGroup"
 });
-targetEntytyRadioGroup.orientation = "row";
-targetEntytyRadioGroup.alignChildren = ["left", "center"];
-targetEntytyRadioGroup.spacing = 10;
-targetEntytyRadioGroup.margins = 0;
+targetEntityRadioGroup.orientation = "row";
+targetEntityRadioGroup.alignChildren = ["left", "center"];
+targetEntityRadioGroup.spacing = 10;
+targetEntityRadioGroup.margins = 0;
 
-export const itemRadio = targetEntytyRadioGroup.add(
+export const itemRadio = targetEntityRadioGroup.add(
   "radiobutton",
   undefined,
   undefined,
@@ -34,7 +34,7 @@ export const itemRadio = targetEntytyRadioGroup.add(
 );
 itemRadio.text = "project Item";
 
-export const layerRadio = targetEntytyRadioGroup.add(
+export const layerRadio = targetEntityRadioGroup.add(
   "radiobutton",
   undefined,
   undefined,
@@ -73,6 +73,26 @@ export const commentRadio = targetPropRadioGroup.add(
   }
 );
 commentRadio.text = "comment";
+
+export const nameToCommentRadio = targetPropRadioGroup.add(
+  "radiobutton",
+  undefined,
+  undefined,
+  {
+    name: "nameToCommentRadio"
+  }
+);
+nameToCommentRadio.text = "NameToComment";
+
+export const commentToNameRadio = targetPropRadioGroup.add(
+  "radiobutton",
+  undefined,
+  undefined,
+  {
+    name: "commentToNameRadio"
+  }
+);
+commentToNameRadio.text = "CommentToName";
 
 // methodRadioGroup
 // ======
@@ -195,7 +215,7 @@ searchDesc.text = "search:";
 export const searchInput = searchGroup.add("edittext", undefined, undefined, {
   name: "search"
 });
-(searchInput.preferredSize as Dimension).width = 300;
+(searchInput.preferredSize as Dimension).width = 240;
 
 // insertGroup
 // ======
@@ -215,7 +235,7 @@ inputDesc.text = "insert string:";
 export const insertInput = insertGroup.add("edittext", undefined, undefined, {
   name: "insert"
 });
-(insertInput.preferredSize as Dimension).width = 300;
+(insertInput.preferredSize as Dimension).width = 240;
 
 // confirmGroup
 // ======
@@ -226,7 +246,7 @@ confirmGroup.orientation = "row";
 confirmGroup.alignChildren = ["left", "center"];
 confirmGroup.spacing = 10;
 confirmGroup.margins = 0;
-confirmGroup.alignment = ["right", "top"];
+confirmGroup.alignment = ["left", "top"];
 (confirmGroup.preferredSize as Dimension).height = 40;
 
 export const ok = confirmGroup.add("button", undefined, undefined, {

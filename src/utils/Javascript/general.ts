@@ -9,25 +9,34 @@ import {
   isPropertyGroup,
   isObject
 } from "../typeCheck";
-import { getAllItems } from "../GetEntity/getEntity";
 
 export const times = (
   step: number,
-  callback: (index: number) => boolean | null | undefined | void
+  callback: (index: number) => boolean | null | undefined | void,
+  reverse: boolean = false
 ): void => {
-  for (let i = 1; i <= step; i++) {
-    if (callback(i)) {
-      break;
-    } else {
-      continue;
+  if (reverse) {
+    for (let i = step; i > 0; i--) {
+      if (callback(i)) {
+        break;
+      } else {
+        continue;
+      }
+    }
+  } else {
+    for (let i = 1; i <= step; i++) {
+      if (callback(i)) {
+        break;
+      } else {
+        continue;
+      }
     }
   }
 };
 
-export const unselectAllItems = (): void => {
-  getAllItems().forEach(item => {
-    if (item.selected) item.selected = false;
-  });
+export const setTimeout = (callback: () => void, time: number) => {
+  $.sleep(time);
+  callback();
 };
 
 export const computeDurationWithMsec = (ms: number): string => {

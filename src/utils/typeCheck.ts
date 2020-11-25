@@ -168,3 +168,7 @@ export const isBoolean = (data: any): data is Boolean => {
 export const isString = (data: any): data is string => {
   return typeof data === "string";
 };
+
+export const isCompItems = (items: any): items is CompItem[] => {
+  return items.every(isCompItem);
+};

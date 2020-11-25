@@ -9,7 +9,7 @@ import {
   isSolidSource,
   isObject
 } from "./typeCheck";
-import { getLayers, getItems } from "./GetEntity/getEntity";
+import { getLayers, getAllItems } from "./GetEntity/getEntity";
 
 export const createFolderItem = (
   parent: FolderItem,
@@ -43,4 +43,10 @@ export const createCompItem = (
     duration,
     frameRate
   );
+};
+
+export const unselectAllItems = (): void => {
+  getAllItems().forEach(item => {
+    if (item.selected) item.selected = false;
+  });
 };

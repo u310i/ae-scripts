@@ -1,6 +1,6 @@
 import { __Error__ } from "../initialize";
 import { times } from "../Javascript/general";
-import { getItems, getLayers } from "../GetEntity/getEntity";
+import { getChildItems, getLayers } from "../GetEntity/getEntity";
 import { getItemAncestorsName } from "../GetEntity/getEntityWithPath";
 import { getItemWithPathArray } from "../GetEntity/getEntityWithPathArray";
 import { createFolderItem } from "../item";
@@ -66,7 +66,7 @@ export const createFolderStruct = (
 ): FolderStructType => {
   const struct: FolderStructType = {};
 
-  getItems(parent).forEach(item => {
+  getChildItems(parent).forEach(item => {
     if (appendFolder) struct["$$parent"] = parent;
     if (isFolderItem(item)) {
       struct[item.name] = createFolderStruct(item);
@@ -115,7 +115,7 @@ export const getMaxSuffixNumItemName = (
   let maxNum: number | undefined;
   let maxNumItemName: string | undefined = matchName;
 
-  getItems(parent).forEach(item => {
+  getChildItems(parent).forEach(item => {
     if (!typeChecker(item)) return;
 
     const regexp = new RegExp("^" + matchName + "\\s*[0-9]*$");

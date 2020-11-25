@@ -31,21 +31,21 @@ dialog.text = "Re-Name";
 dialog.orientation = "column";
 dialog.alignChildren = ["left", "top"];
 dialog.spacing = 5;
-dialog.margins = 16; // targetEntytyRadioGroup
+dialog.margins = 16; // targetEntityRadioGroup
 // ======
 
-var targetEntytyRadioGroup = dialog.add("group", undefined, {
-  name: "targetEntytyRadioGroup"
+var targetEntityRadioGroup = dialog.add("group", undefined, {
+  name: "targetEntityRadioGroup"
 });
-targetEntytyRadioGroup.orientation = "row";
-targetEntytyRadioGroup.alignChildren = ["left", "center"];
-targetEntytyRadioGroup.spacing = 10;
-targetEntytyRadioGroup.margins = 0;
-var itemRadio = targetEntytyRadioGroup.add("radiobutton", undefined, undefined, {
+targetEntityRadioGroup.orientation = "row";
+targetEntityRadioGroup.alignChildren = ["left", "center"];
+targetEntityRadioGroup.spacing = 10;
+targetEntityRadioGroup.margins = 0;
+var itemRadio = targetEntityRadioGroup.add("radiobutton", undefined, undefined, {
   name: "itemRadio"
 });
 itemRadio.text = "project Item";
-var layerRadio = targetEntytyRadioGroup.add("radiobutton", undefined, undefined, {
+var layerRadio = targetEntityRadioGroup.add("radiobutton", undefined, undefined, {
   name: "layerRadio"
 });
 layerRadio.text = "Layer"; // targetPropRadioGroup
@@ -65,7 +65,15 @@ nameRadio.text = "name";
 var commentRadio = targetPropRadioGroup.add("radiobutton", undefined, undefined, {
   name: "commentRadio"
 });
-commentRadio.text = "comment"; // methodRadioGroup
+commentRadio.text = "comment";
+var nameToCommentRadio = targetPropRadioGroup.add("radiobutton", undefined, undefined, {
+  name: "nameToCommentRadio"
+});
+nameToCommentRadio.text = "NameToComment";
+var commentToNameRadio = targetPropRadioGroup.add("radiobutton", undefined, undefined, {
+  name: "commentToNameRadio"
+});
+commentToNameRadio.text = "CommentToName"; // methodRadioGroup
 // ======
 
 var methodRadioGroup = dialog.add("group", undefined, {
@@ -140,7 +148,7 @@ searchDesc.text = "search:";
 var searchInput = searchGroup.add("edittext", undefined, undefined, {
   name: "search"
 });
-searchInput.preferredSize.width = 300; // insertGroup
+searchInput.preferredSize.width = 240; // insertGroup
 // ======
 
 var insertGroup = dialog.add("group", undefined, {
@@ -157,7 +165,7 @@ inputDesc.text = "insert string:";
 var insertInput = insertGroup.add("edittext", undefined, undefined, {
   name: "insert"
 });
-insertInput.preferredSize.width = 300; // confirmGroup
+insertInput.preferredSize.width = 240; // confirmGroup
 // ======
 
 var confirmGroup = dialog.add("group", undefined, {
@@ -167,14 +175,23 @@ confirmGroup.orientation = "row";
 confirmGroup.alignChildren = ["left", "center"];
 confirmGroup.spacing = 10;
 confirmGroup.margins = 0;
-confirmGroup.alignment = ["right", "top"];
+confirmGroup.alignment = ["left", "top"];
 confirmGroup.preferredSize.height = 40;
 var ok = confirmGroup.add("button", undefined, undefined, {
   name: "ok"
 });
 ok.text = "OK";
 ok.justify = "left";
-ok.alignment = ["left", "center"];var getSelectedItem = function getSelectedItem() {
+ok.alignment = ["left", "center"];var isFunction = function isFunction(data) {
+  return typeof data === "function";
+};var getActiveItem = function getActiveItem() {
+  var item = app.project.activeItem;
+  return item || (null);
+};
+var getActiveCompItem = function getActiveCompItem() {
+  var item = getActiveItem();
+  return item instanceof CompItem ? (item) : (null);
+};var getSelectedItems = function getSelectedItems() {
   var items = app.project.selection;
   return items[0] ? (items) : (null);
 };
@@ -182,66 +199,15 @@ var getSelectedLayers = function getSelectedLayers(compItem) {
   var layers = compItem.selectedLayers;
   return layers[0] ? (layers) : (null);
 };
-var getActiveItem = function getActiveItem() {
-  var item = app.project.activeItem;
-  return item || (null);
-};
-var getItemFromActive = function getItemFromActive() {
-  var item = getActiveItem();
-  return item instanceof CompItem ? (item) : (null);
-};
 var getSelectedLayersFromActive = function getSelectedLayersFromActive() {
-  var compItem = getItemFromActive();
+  var compItem = getActiveCompItem();
   return compItem && (getSelectedLayers(compItem));
-};var isFunction = function isFunction(data) {
-  return typeof data === "function";
-};var addString = function addString(entity, propName, text) {
+};var addString = function addString(entity, source, target, text) {
   app.beginUndoGroup("Add-Comment");
-  var isName = propName === "name";
-  var isComment = propName === "comment";
-
-  if (entity === "item") {
-    var items = getSelectedItem();
-    items && (items.forEach(function (item) {
-      if (isName) {
-        var newName = isFunction(text) ? (text(item.name)) : (text);
-
-        if (newName) {
-          item.name = newName;
-        }
-      }
-
-      if (isComment) {
-        var newComment = isFunction(text) ? (text(item.comment)) : (text);
-
-        if (newComment) {
-          item.comment = newComment;
-        }
-      }
-    }));
-  }
-
-  if (entity === "layer") {
-    var layers = getSelectedLayersFromActive();
-    layers && (layers.forEach(function (layer) {
-      if (isName) {
-        var newName = isFunction(text) ? (text(layer.name)) : (text);
-
-        if (newName) {
-          layer.name = newName;
-        }
-      }
-
-      if (isComment) {
-        var newComment = isFunction(text) ? (text(layer.comment)) : (text);
-
-        if (newComment) {
-          layer.comment = newComment;
-        }
-      }
-    }));
-  }
-
+  var entities = entity === "item" ? (getSelectedItems()) : (entity === "layer" ? (getSelectedLayersFromActive()) : (null));
+  entities && (entities.forEach(function (entity) {
+    entity[target] = isFunction(text) ? (text(entity[source]) || (entity[target])) : (text);
+  }));
   app.endUndoGroup();
 };var escapeRegex = function escapeRegex(str) {
   return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
@@ -354,18 +320,13 @@ var renameWithSimpleGlob = function renameWithSimpleGlob(targetString, glob, rep
     }
 
     if (addStringCallback !== undefined) {
-      var isName = nameRadio.value;
-      var isComment = commentRadio.value;
-
-      if (itemRadio.value) {
-        isName && (addString("item", "name", addStringCallback));
-        isComment && (addString("item", "name", addStringCallback));
-      }
-
-      if (layerRadio.value) {
-        isName && (addString("layer", "name", addStringCallback));
-        isComment && (addString("layer", "comment", addStringCallback));
-      }
+      var entity = itemRadio.value ? ("item") : (layerRadio.value ? ("layer") : (null));
+      if (!entity) return;
+      var source = nameRadio.value || (nameToCommentRadio.value) ? ("name") : (commentRadio.value || (commentToNameRadio.value) ? ("comment") : (null));
+      if (!source) return;
+      var target = nameRadio.value || (commentToNameRadio.value) ? ("name") : (commentRadio.value || (nameToCommentRadio.value) ? ("comment") : (null));
+      if (!target) return;
+      addString(entity, source, target, addStringCallback);
     }
 
     !isPanel && (dialog.close());

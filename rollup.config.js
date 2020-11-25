@@ -69,33 +69,30 @@ export default commandLineArgs => {
       output: [
         {
           ...defaultConfig.output,
-          file: path.resolve(__dirname, "build/ReName/u3-Re-Name.jsx")
+          file: path.resolve(__dirname, "build/ReName/Re-Name.jsx")
         },
         {
           ...defaultConfig.output,
           file:
-            "C:\\Program Files\\Adobe\\Adobe After Effects 2020\\Support Files\\Scripts\\ScriptUI Panels\\u3-Re-Name.jsx"
+            "C:\\Program Files\\Adobe\\Adobe After Effects 2020\\Support Files\\Scripts\\ScriptUI Panels\\Re-Name.jsx"
         }
       ]
     };
   }
-  if (process.env.NAME === "TopLayerMarkerToSomething") {
+  if (process.env.NAME === "CopyMarker") {
     return {
       ...defaultConfig,
       input: "src/projects/Marker/index.ts",
       output: [
         {
           ...defaultConfig.output,
-          file: path.resolve(
-            __dirname,
-            "build/Marker/TopLayerMarker-To-Something-Panel.jsx"
-          )
+          file: path.resolve(__dirname, "build/Marker/Copy-Marker.jsx")
         },
         {
           ...defaultConfig.output,
           file: path.resolve(
             __dirname,
-            "C:\\Program Files\\Adobe\\Adobe After Effects 2020\\Support Files\\Scripts\\ScriptUI Panels\\TopLayerMarker-To-Something-Panel.jsx"
+            "C:\\Program Files\\Adobe\\Adobe After Effects 2020\\Support Files\\Scripts\\ScriptUI Panels\\Copy-Marker.jsx"
           )
         }
       ]
@@ -110,13 +107,30 @@ export default commandLineArgs => {
           ...defaultConfig.output,
           file: path.resolve(
             __dirname,
-            "build/ReplaceUsingItem/Replace-UsingItem-Panel.jsx"
+            "build/ReplaceUsingItem/Replace-UsingItem.jsx"
           )
         },
         {
           ...defaultConfig.output,
           file:
-            "C:\\Program Files\\Adobe\\Adobe After Effects 2020\\Support Files\\Scripts\\ScriptUI Panels\\Replace-UsingItem-Panel.jsx"
+            "C:\\Program Files\\Adobe\\Adobe After Effects 2020\\Support Files\\Scripts\\ScriptUI Panels\\Replace-UsingItem.jsx"
+        }
+      ]
+    };
+  }
+  if (process.env.NAME === "UHSAuthor") {
+    return {
+      ...defaultConfig,
+      input: "src/projects/UHSAuthor/index.ts",
+      output: [
+        {
+          ...defaultConfig.output,
+          file: path.resolve(__dirname, "build/UHSAuthor/UHS-Author.jsx")
+        },
+        {
+          ...defaultConfig.output,
+          file:
+            "C:\\Program Files\\Adobe\\Adobe After Effects 2020\\Support Files\\Scripts\\ScriptUI Panels\\UHS-Author.jsx"
         }
       ]
     };

@@ -29,7 +29,7 @@ export const getActiveCompItem = (): CompItem | null => {
   return item instanceof CompItem ? item : null;
 };
 
-export const getItems = (
+export const getChildItems = (
   folder: FolderItem = app.project.rootFolder,
   callback?: (item: $T.ADBE.AnyItem) => boolean
 ): $T.ADBE.AnyItem[] => {
@@ -42,12 +42,26 @@ export const getItems = (
   return items;
 };
 
+export const getChildItem = (
+  folder: FolderItem = app.project.rootFolder,
+  callback?: (item: $T.ADBE.AnyItem) => boolean
+): $T.ADBE.AnyItem | null => {
+  let item: $T.ADBE.AnyItem | null = null;
+  times(folder.numItems, index => {
+    const target = folder.item(index) as $T.ADBE.AnyItem;
+    if (callback && !callback(target)) return;
+    item = target;
+    return true;
+  });
+  return item;
+};
+
 export const findItemWithName = (
   name: string,
   parent: FolderItem = app.project.rootFolder
 ): $T.ADBE.AnyItem | null => {
   let item: $T.ADBE.AnyItem | null = null;
-  getItems(parent).forEach(current => {
+  getChildItems(parent).forEach(current => {
     if (current.name === name) {
       if (isAnyItem(current)) item = current;
       return true;

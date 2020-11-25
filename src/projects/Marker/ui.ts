@@ -4,7 +4,7 @@ export const dialog: Panel = globalThis;
 
 // DIALOG
 // ======
-dialog.text = "TopLayerMarker-To-Something-Panel";
+dialog.text = "Copy-Marker";
 dialog.orientation = "column";
 dialog.alignChildren = ["left", "top"];
 dialog.spacing = 10;
@@ -15,30 +15,50 @@ dialog.margins = 16;
 export const methodGroup = dialog.add("group", undefined, {
   name: "methodGroup"
 });
-methodGroup.orientation = "row";
+methodGroup.orientation = "column";
 methodGroup.alignChildren = ["left", "center"];
 methodGroup.spacing = 10;
 methodGroup.margins = 0;
 
-export const topLayerMarkerToCompMarkerRadio = methodGroup.add(
+export const layersToCompRadio = methodGroup.add(
   "radiobutton",
   undefined,
   undefined,
   {
-    name: "topLayerMarkerToCompMarkerRadio"
+    name: "Layers-To-Comp"
   }
 );
-topLayerMarkerToCompMarkerRadio.text = "topLayerMarkerToCompMarkerRadio";
+layersToCompRadio.text = "Layers-To-Comp";
 
-export const topLayerMarkerToTopLayerRadio = methodGroup.add(
+export const topLayerToAnotherCompRadio = methodGroup.add(
   "radiobutton",
   undefined,
   undefined,
   {
-    name: "topLayerMarkerToTopLayerRadio"
+    name: "TopLayer-To-AnotherComp"
   }
 );
-topLayerMarkerToTopLayerRadio.text = "topLayerMarkerToTopLayerRadio";
+topLayerToAnotherCompRadio.text = "TopLayer-To-AnotherComp";
+
+export const topLayerToAnotherCompTopLayerRadio = methodGroup.add(
+  "radiobutton",
+  undefined,
+  undefined,
+  {
+    name: "TopLayer-To-AnotherComp-TopLayer"
+  }
+);
+topLayerToAnotherCompTopLayerRadio.text = "TopLayer-To-AnotherComp-TopLayer";
+
+export const removeAllCompMarkers = methodGroup.add(
+  "radiobutton",
+  undefined,
+  undefined,
+  {
+    name: "TopLayer-To-AnotherComp-TopLayer"
+  }
+);
+removeAllCompMarkers.text = "Remove-AllCompMarkers";
 
 // setButton
 // ======
@@ -47,24 +67,32 @@ export const setButton = dialog.add("button", undefined, undefined, {
 });
 setButton.text = "set source";
 
-// idGroup
+// setNameGroup
 // ======
-export const idGroup = dialog.add("group", undefined, { name: "idGroup" });
-idGroup.orientation = "row";
-idGroup.alignChildren = ["left", "center"];
-idGroup.spacing = 10;
-idGroup.margins = 0;
-
-export const idDescription = idGroup.add("statictext", undefined, undefined, {
-  name: "idDescription"
+export const setNameGroup = dialog.add("group", undefined, {
+  name: "setNameGroup"
 });
-idDescription.text = "ID: ";
+setNameGroup.orientation = "row";
+setNameGroup.alignChildren = ["left", "center"];
+setNameGroup.spacing = 10;
+setNameGroup.margins = 0;
 
-export const idText = idGroup.add("edittext", undefined, undefined, {
-  name: "idText"
+export const setNameDedscription = setNameGroup.add(
+  "statictext",
+  undefined,
+  undefined,
+  {
+    name: "setNameDedscription"
+  }
+);
+setNameDedscription.text = "name: ";
+
+export const nameText = setNameGroup.add("statictext", undefined, undefined, {
+  name: "edittext"
 });
-idText.text = "";
-(idText.preferredSize as Dimension).width = 80;
+nameText.text = "";
+(nameText.preferredSize as Dimension).width = 80;
+nameText.enabled = false;
 
 // confirmGroup
 // ======
@@ -75,7 +103,7 @@ confirmGroup.orientation = "row";
 confirmGroup.alignChildren = ["left", "center"];
 confirmGroup.spacing = 10;
 confirmGroup.margins = 0;
-confirmGroup.alignment = ["right", "top"];
+confirmGroup.alignment = ["left", "top"];
 (confirmGroup.preferredSize as Dimension).height = 40;
 
 export const ok = confirmGroup.add("button", undefined, undefined, {
