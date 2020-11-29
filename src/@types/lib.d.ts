@@ -4,6 +4,7 @@ declare module "zero-fill" {
 }
 
 declare module "globalThis";
+declare module "json-format";
 
 // declare var $L: {
 //   error: $T.Log.WriteError;

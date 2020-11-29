@@ -33,16 +33,18 @@ export const createCompItem = (
   const width = params.width || 1280;
   const height = params.height || 720;
   const pixelAspect = params.pixelAspect || 1.0;
-  const duration = params.duration || 30.0;
+  const duration = params.duration || 1.0;
   const frameRate = params.frameRate || 30.0;
-  return parent.items.addComp(
+  const newComp = parent.items.addComp(
     name,
     width,
     height,
     pixelAspect,
-    duration,
+    9999.0,
     frameRate
   );
+  newComp.duration = duration;
+  return newComp;
 };
 
 export const unselectAllItems = (): void => {

@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "dependencies": {},
+  "dependencies": {
+    "json-format": "^1.0.1"
+  },
   "devDependencies": {
     "@babel/cli": "^7.8.4",
     "@babel/core": "^7.9.0",
@@ -40,7 +42,11 @@
     "build:ReplaceUsingItem": "rollup -c --environment NAME:ReplaceUsingItem,BUILD:production",
     "watch:ReplaceUsingItem": "rollup -c -w --environment NAME:ReplaceUsingItem",
     "build:UHSAuthor": "rollup -c --environment NAME:UHSAuthor,BUILD:production",
-    "watch:UHSAuthor": "rollup -c -w --environment NAME:UHSAuthor"
+    "watch:UHSAuthor": "rollup -c -w --environment NAME:UHSAuthor",
+    "build:CheckDuration": "rollup -c --environment NAME:CheckDuration,BUILD:production",
+    "watch:CheckDuration": "rollup -c -w --environment NAME:CheckDuration",
+    "build:LayerVideoSwitcher": "rollup -c --environment NAME:LayerVideoSwitcher,BUILD:production",
+    "watch:LayerVideoSwitcher": "rollup -c -w --environment NAME:LayerVideoSwitcher"
   },
   "author": "",
   "license": "ISC"

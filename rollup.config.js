@@ -135,5 +135,47 @@ export default commandLineArgs => {
       ]
     };
   }
+  if (process.env.NAME === "CheckDuration") {
+    return {
+      ...defaultConfig,
+      input: "src/projects/Special/CheckDuration/index.ts",
+      output: [
+        {
+          ...defaultConfig.output,
+          file: path.resolve(
+            __dirname,
+            "build/Special/CheckDuration/Check-Duration.jsx"
+          )
+        },
+        {
+          ...defaultConfig.output,
+          file: path.resolve(
+            __dirname,
+            "build/_forScriptLancher/Check-Duration.jsx"
+          )
+        }
+      ]
+    };
+  }
+  if (process.env.NAME === "LayerVideoSwitcher") {
+    return {
+      ...defaultConfig,
+      input: "src/projects/LayerVideoSwitcher/index.ts",
+      output: [
+        {
+          ...defaultConfig.output,
+          file: path.resolve(
+            __dirname,
+            "build/LayerVideoSwitcher/Layer-Video-Switcher.jsx"
+          )
+        },
+        {
+          ...defaultConfig.output,
+          file:
+            "C:\\Program Files\\Adobe\\Adobe After Effects 2020\\Support Files\\Scripts\\ScriptUI Panels\\Layer-Video-Switcher.jsx"
+        }
+      ]
+    };
+  }
   return defaultConfig;
 };

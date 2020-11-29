@@ -14,8 +14,8 @@ let marginFolder: FolderItem;
 const main = () => {
   // initialize
   win.advancedReplaceRadio.value = true;
-  win.searchInputText.text = "work_*_*_*";
-  win.replaceInputText.text = "E504_BAR狙え_$1_$2_$3";
+  win.searchInputText.text = "work_*";
+  win.replaceInputText.text = "E504_BAR狙え_$1";
 
   // main
   let folders = setFolder();

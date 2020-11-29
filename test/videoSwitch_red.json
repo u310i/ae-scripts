@@ -1,0 +1,52 @@
+{
+	"name": "red",
+	"switchList": [
+		{
+			"enabled": true,
+			"list": [
+				"testComp",
+				"work"
+			]
+		},
+		{
+			"enabled": true,
+			"path": [
+				"Green Solid 6",
+				"work_1st_チャンス_加算",
+				"cmp",
+				"_sozai",
+				"work"
+			]
+		},
+		{
+			"enabled": true,
+			"path": [
+				"Green Solid 6",
+				"work_1st_チャンス_加算",
+				"cmp",
+				"_sozai",
+				"work"
+			]
+		},
+		{
+			"enabled": false,
+			"path": [
+				"Green Solid 1",
+				"work_1st_チャンス_加算",
+				"cmp",
+				"_sozai",
+				"work"
+			]
+		},
+		{
+			"enabled": true,
+			"path": [
+				"Green Solid 3",
+				"work_1st_チャンス_加算",
+				"cmp",
+				"_sozai",
+				"work"
+			]
+		}
+	]
+}

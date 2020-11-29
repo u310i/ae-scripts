@@ -1,0 +1,24 @@
+{
+	"switchList": [
+		{
+			"enabled": true,
+			"path": [
+				"Green Solid 4",
+				"work_1st_チャンス_加算",
+				"cmp",
+				"_sozai",
+				"work"
+			]
+		},
+		{
+			"enabled": true,
+			"path": [
+				"Green Solid 6",
+				"work_1st_チャンス_加算",
+				"cmp",
+				"_sozai",
+				"work"
+			]
+		}
+	]
+}

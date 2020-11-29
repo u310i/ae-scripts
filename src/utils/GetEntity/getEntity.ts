@@ -1,3 +1,4 @@
+import "../../polyfill/array/some";
 import { __Error__ } from "../initialize";
 import { times } from "../Javascript/general";
 import {
@@ -44,7 +45,7 @@ export const getChildItems = (
 
 export const getChildItem = (
   folder: FolderItem = app.project.rootFolder,
-  callback?: (item: $T.ADBE.AnyItem) => boolean
+  callback: (item: $T.ADBE.AnyItem) => boolean
 ): $T.ADBE.AnyItem | null => {
   let item: $T.ADBE.AnyItem | null = null;
   times(folder.numItems, index => {
@@ -61,11 +62,12 @@ export const findItemWithName = (
   parent: FolderItem = app.project.rootFolder
 ): $T.ADBE.AnyItem | null => {
   let item: $T.ADBE.AnyItem | null = null;
-  getChildItems(parent).forEach(current => {
+  getChildItems(parent).some(current => {
     if (current.name === name) {
-      if (isAnyItem(current)) item = current;
+      item = current;
       return true;
     }
+    return false;
   });
   return item;
 };
