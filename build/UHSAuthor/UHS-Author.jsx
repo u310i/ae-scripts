@@ -427,7 +427,7 @@ var setMarkers = function setMarkers(sourceProp, targetProp) {
     newComp.bgColor = comp.bgColor;
     var triggerName = newComp.name.split("_")[2];
     var sizeName = compProps.width === 1200 && (compProps.height === 1000) ? ("全画面") : (compProps.width === 1200 && (compProps.height === 600) ? ("半画面") : ("※画面サイズエラー"));
-    newComp.comment = "".concat(triggerName, "_").concat(sizeName, "_\u4F59\u767D");
+    newComp.comment = "".concat(triggerName, "_").concat(sizeName, "_\u4F59\u767D").concat(comp.comment ? ("_".concat(comp.comment)) : (""));
     newComp.layers.add(comp);
     setMarker(comp, newComp);
     comp.selected = false;
@@ -479,7 +479,7 @@ var createAtComp = function createAtComp(folder) {
     var newComp = createCompItem(folder, compProps);
     newComp.bgColor = comp.bgColor;
     var commentArray = comp.comment.split("_");
-    newComp.comment = commentArray[0] + commentArray.slice(1).join("_");
+    newComp.comment = commentArray[0].toUpperCase() + "_" + commentArray.slice(1).join("_");
     var layer = newComp.layers.add(comp);
     layer.position.setValue([comp.width / 2, comp.height / 2, 0]);
     setMarker(comp, newComp);

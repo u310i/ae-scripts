@@ -177,5 +177,34 @@ export default commandLineArgs => {
       ]
     };
   }
+  if (process.env.NAME === "CorrectionCompDuration") {
+    return {
+      ...defaultConfig,
+      input: "src/projects/CorrectionCompDuration/index.ts",
+      output: [
+        {
+          ...defaultConfig.output,
+          file: path.resolve(
+            __dirname,
+            "build/CorrectionCompDuration/Correction-CompDuration.jsx"
+          )
+        },
+        {
+          ...defaultConfig.output,
+          file: path.resolve(
+            __dirname,
+            "build/_forScriptLancher/Correction-CompDuration.jsx"
+          )
+        },
+        {
+          ...defaultConfig.output,
+          file: path.resolve(
+            __dirname,
+            "C:\\Program Files\\Adobe\\Adobe After Effects CS6\\Support Files\\Scripts\\usr\\Correction-CompDuration.jsx"
+          )
+        }
+      ]
+    };
+  }
   return defaultConfig;
 };

@@ -47,7 +47,9 @@ export const createMarginComp = (folder: FolderItem): void => {
         : compProps.width === 1200 && compProps.height === 600
         ? "半画面"
         : "※画面サイズエラー";
-    newComp.comment = `${triggerName}_${sizeName}_余白`;
+    newComp.comment = `${triggerName}_${sizeName}_余白${
+      comp.comment ? `_${comp.comment}` : ""
+    }`;
 
     newComp.layers.add(comp);
 
@@ -111,7 +113,8 @@ export const createAtComp = (folder: FolderItem): void => {
     newComp.bgColor = comp.bgColor;
 
     const commentArray = comp.comment.split("_");
-    newComp.comment = commentArray[0] + commentArray.slice(1).join("_");
+    newComp.comment =
+      commentArray[0].toUpperCase() + "_" + commentArray.slice(1).join("_");
 
     const layer = newComp.layers.add(comp);
     layer.position.setValue([comp.width / 2, comp.height / 2, 0]);

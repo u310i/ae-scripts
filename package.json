@@ -46,7 +46,9 @@
     "build:CheckDuration": "rollup -c --environment NAME:CheckDuration,BUILD:production",
     "watch:CheckDuration": "rollup -c -w --environment NAME:CheckDuration",
     "build:LayerVideoSwitcher": "rollup -c --environment NAME:LayerVideoSwitcher,BUILD:production",
-    "watch:LayerVideoSwitcher": "rollup -c -w --environment NAME:LayerVideoSwitcher"
+    "watch:LayerVideoSwitcher": "rollup -c -w --environment NAME:LayerVideoSwitcher",
+    "build:CorrectionCompDuration": "rollup -c --environment NAME:CorrectionCompDuration,BUILD:production",
+    "watch:CorrectionCompDuration": "rollup -c -w --environment NAME:CorrectionCompDuration"
   },
   "author": "",
   "license": "ISC"
