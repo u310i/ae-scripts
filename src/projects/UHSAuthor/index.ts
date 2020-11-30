@@ -18,14 +18,14 @@ const main = () => {
   win.replaceInputText.text = "E504_BAR狙え_$1";
 
   // main
-  let folders = setFolder();
-  if (!folders) {
-    alert("ルートフォルダがありません。");
-    return;
-  }
-  atFolder = folders.at;
-  compFolder = folders.comp;
-  marginFolder = folders.margin;
+  // let folders = setFolder();
+  // if (!folders) {
+  //   alert("ルートフォルダがありません。");
+  //   return;
+  // }
+  // atFolder = folders.at;
+  // compFolder = folders.comp;
+  // marginFolder = folders.margin;
 
   // setFolderButton
   win.setFolderButton.onClick = () => {
@@ -34,7 +34,7 @@ const main = () => {
     const rootFolder =
       !items || !items[0] || !isFolderItem(items[0]) ? undefined : items[0];
 
-    folders = setFolder(rootFolder);
+    const folders = setFolder(rootFolder);
     if (!folders) return;
     atFolder = folders.at;
     compFolder = folders.comp;

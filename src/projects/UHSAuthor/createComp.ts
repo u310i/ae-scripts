@@ -111,8 +111,7 @@ export const createAtComp = (folder: FolderItem): void => {
     newComp.bgColor = comp.bgColor;
 
     const commentArray = comp.comment.split("_");
-    newComp.comment =
-      commentArray[0].toUpperCase() + commentArray.slice(1).join("_");
+    newComp.comment = commentArray[0] + commentArray.slice(1).join("_");
 
     const layer = newComp.layers.add(comp);
     layer.position.setValue([comp.width / 2, comp.height / 2, 0]);

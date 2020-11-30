@@ -6,7 +6,7 @@ import jsonFormat from "json-format";
 import { getSelectedItems } from "../../utils/GetEntity/getSelectedEntity";
 import { unselectAllItems } from "../../utils/item";
 import { LayerPath } from "../../utils/GetEntity/getEntityPath";
-import { getLayersSwitcher, SwitchList, getLayerFromPath } from "./utils";
+import { createSwitcher, SwitchList, getLayerFromPath } from "./utils";
 import { times } from "../../utils/Javascript/general";
 
 type JsonObjType = {
@@ -71,7 +71,7 @@ const main = () => {
       }
     }
 
-    const newLayersSwitcher = getLayersSwitcher();
+    const newLayersSwitcher = createSwitcher();
     if (!newLayersSwitcher) {
       return;
     }

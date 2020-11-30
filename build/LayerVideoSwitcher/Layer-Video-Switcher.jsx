@@ -251,6 +251,14 @@ if (!Array.prototype.some) {
 };
 var isCompItem = function isCompItem(item) {
   return item instanceof CompItem;
+};
+var posinf = Number.POSITIVE_INFINITY;
+var neginf = Number.NEGATIVE_INFINITY;
+var isNumber = function isNumber(data) {
+  return typeof data === "number" && (data > neginf) && (data < posinf);
+};
+var isString = function isString(data) {
+  return typeof data === "string";
 };var getActiveItem = function getActiveItem() {
   var item = app.project.activeItem;
   return item || (null);
@@ -282,10 +290,6 @@ var findItemWithName = function findItemWithName(name) {
     return false;
   });
   return item;
-};
-var findLayerWithName = function findLayerWithName(name, comp) {
-  var layer = comp.layer(name);
-  return layer ? (layer) : (null);
 };
 var getLayers = function getLayers(comp) {
   var options = arguments.length > 1 && ((arguments[1] !== undefined)) ? ((arguments[1])) : (({}));
@@ -328,9 +332,9 @@ var getLayerPath = function getLayerPath(item, layer) {
     return null;
   }
 
-  var path = [layer.name, item.name].concat(ancestors);
+  var path = [layer.index, item.name].concat(ancestors);
   return path;
-};var getLayersSwitcher = function getLayersSwitcher() {
+};var createSwitcher = function createSwitcher() {
   var layers = getSelectedLayersFromActive();
 
   if (!layers || (!layers[0])) {
@@ -384,11 +388,23 @@ var getLayerFromPath = function getLayerFromPath(path) {
         return true;
       }
 
-      layer = findLayerWithName(path[i - 1], comp);
+      var layerIndex = path[i - 1];
+
+      if (!isNumber(layerIndex)) {
+        return true;
+      }
+
+      layer = comp.layer(layerIndex);
       return true;
     }
 
-    item = findItemWithName(path[i - 1], parent);
+    var itemName = path[i - 1];
+
+    if (!isString(itemName)) {
+      return true;
+    }
+
+    item = findItemWithName(itemName, parent);
 
     if (i === 2) {
       if (!isCompItem(item)) {
@@ -460,7 +476,7 @@ var main = function main() {
       }
     }
 
-    var newLayersSwitcher = getLayersSwitcher();
+    var newLayersSwitcher = createSwitcher();
 
     if (!newLayersSwitcher) {
       return;

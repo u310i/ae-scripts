@@ -8,12 +8,18 @@ import {
   findItemWithName,
   findLayerWithName
 } from "../../utils/GetEntity/getEntity";
-import { isCompItem, isFolderItem, isCompItems } from "../../utils/typeCheck";
+import {
+  isCompItem,
+  isFolderItem,
+  isCompItems,
+  isNumber,
+  isString
+} from "../../utils/typeCheck";
 import { times } from "../../utils/Javascript/general";
 
 export type Switch = { enabled: boolean; path: LayerPath };
 export type SwitchList = Switch[];
-export const getLayersSwitcher = (): SwitchList | undefined => {
+export const createSwitcher = (): SwitchList | undefined => {
   let layers = getSelectedLayersFromActive();
   if (!layers || !layers[0]) {
     const items = getSelectedItems();
@@ -60,11 +66,19 @@ export const getLayerFromPath = (path: LayerPath): Layer | null => {
         if (!comp) {
           return true;
         }
-        layer = findLayerWithName(path[i - 1], comp);
+        const layerIndex = path[i - 1];
+        if (!isNumber(layerIndex)) {
+          return true;
+        }
+        layer = comp.layer(layerIndex);
         return true;
       }
 
-      item = findItemWithName(path[i - 1], parent);
+      const itemName = path[i - 1];
+      if (!isString(itemName)) {
+        return true;
+      }
+      item = findItemWithName(itemName, parent);
 
       if (i === 2) {
         if (!isCompItem(item)) {

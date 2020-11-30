@@ -19,7 +19,7 @@ export const getItemAncestors = (
   }
 };
 
-export type LayerPath = string[];
+export type LayerPath = Array<string | number>;
 export const getLayerPath = (
   item: CompItem,
   layer: $T.ADBE.AnyLayer
@@ -32,6 +32,6 @@ export const getLayerPath = (
     return null;
   }
 
-  const path: LayerPath = [layer.name, item.name, ...ancestors];
+  const path: LayerPath = [layer.index, item.name, ...ancestors];
   return path;
 };
