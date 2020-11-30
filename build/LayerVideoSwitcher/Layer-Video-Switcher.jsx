@@ -34,7 +34,7 @@ var pref = {
 };var dialog = globalThis; // DIALOG
 // ======
 
-dialog.text = "Add-Comment";
+dialog.text = "Layer-Video-Switcher";
 dialog.orientation = "column";
 dialog.alignChildren = ["left", "top"];
 dialog.spacing = 10;
@@ -286,7 +286,21 @@ var findItemWithName = function findItemWithName(name) {
 var findLayerWithName = function findLayerWithName(name, comp) {
   var layer = comp.layer(name);
   return layer ? (layer) : (null);
-};var getSelectedLayers = function getSelectedLayers(compItem) {
+};
+var getLayers = function getLayers(comp) {
+  var options = arguments.length > 1 && ((arguments[1] !== undefined)) ? ((arguments[1])) : (({}));
+  var layers = [];
+  times(comp.numLayers, function (index) {
+    var layer = comp.layer(index);
+    if (options.callback && (options.callback(layer))) return;
+    layers.push(layer);
+  });
+  return options.fromBottom ? (layers.reverse()) : (layers);
+};var getSelectedItems = function getSelectedItems() {
+  var items = app.project.selection;
+  return items[0] ? (items) : (null);
+};
+var getSelectedLayers = function getSelectedLayers(compItem) {
   var layers = compItem.selectedLayers;
   return layers[0] ? (layers) : (null);
 };
@@ -317,12 +331,26 @@ var getLayerPath = function getLayerPath(item, layer) {
   var path = [layer.name, item.name].concat(ancestors);
   return path;
 };var getLayersSwitcher = function getLayersSwitcher() {
-  var activeItem = getActiveCompItem();
   var layers = getSelectedLayersFromActive();
 
-  if (!activeItem || (!layers) || (!layers[0])) {
-    alert("Please select a layer.");
-    return;
+  if (!layers || (!layers[0])) {
+    var items = getSelectedItems();
+
+    if (!items || (!items[0])) {
+      alert("Select a layer or composition.");
+      return;
+    }
+
+    var itemsLayers = [];
+    items.forEach(function (item) {
+      if (!isCompItem(item)) {
+        alert("Select a layer or composition.");
+        return;
+      }
+
+      itemsLayers = itemsLayers.concat(getLayers(item));
+    });
+    layers = itemsLayers;
   }
 
   var layerPathList = [];
@@ -331,7 +359,7 @@ var getLayerPath = function getLayerPath(item, layer) {
       return;
     }
 
-    var arrayPath = getLayerPath(activeItem, layer);
+    var arrayPath = getLayerPath(layer.containingComp, layer);
 
     if (!arrayPath) {
       return;

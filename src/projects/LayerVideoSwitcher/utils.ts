@@ -1,5 +1,8 @@
-import { getActiveCompItem } from "../../utils/GetEntity/getEntity";
-import { getSelectedLayersFromActive } from "../../utils/GetEntity/getSelectedEntity";
+import { getActiveCompItem, getLayers } from "../../utils/GetEntity/getEntity";
+import {
+  getSelectedLayersFromActive,
+  getSelectedItems
+} from "../../utils/GetEntity/getSelectedEntity";
 import { getLayerPath, LayerPath } from "../../utils/GetEntity/getEntityPath";
 import {
   findItemWithName,
@@ -11,11 +14,22 @@ import { times } from "../../utils/Javascript/general";
 export type Switch = { enabled: boolean; path: LayerPath };
 export type SwitchList = Switch[];
 export const getLayersSwitcher = (): SwitchList | undefined => {
-  const activeItem = getActiveCompItem();
-  const layers = getSelectedLayersFromActive();
-  if (!activeItem || !layers || !layers[0]) {
-    alert("Please select a layer.");
-    return;
+  let layers = getSelectedLayersFromActive();
+  if (!layers || !layers[0]) {
+    const items = getSelectedItems();
+    if (!items || !items[0]) {
+      alert("Select a layer or composition.");
+      return;
+    }
+    let itemsLayers: $T.ADBE.AnyLayer[] = [];
+    items.forEach(item => {
+      if (!isCompItem(item)) {
+        alert("Select a layer or composition.");
+        return;
+      }
+      itemsLayers = itemsLayers.concat(getLayers(item));
+    });
+    layers = itemsLayers;
   }
 
   let layerPathList: SwitchList = [];
@@ -24,7 +38,7 @@ export const getLayersSwitcher = (): SwitchList | undefined => {
     if (!layer.hasVideo) {
       return;
     }
-    const arrayPath = getLayerPath(activeItem, layer);
+    const arrayPath = getLayerPath(layer.containingComp, layer);
     if (!arrayPath) {
       return;
     }

@@ -4,7 +4,7 @@ export const dialog: Panel = globalThis;
 
 // DIALOG
 // ======
-dialog.text = "Add-Comment";
+dialog.text = "Layer-Video-Switcher";
 dialog.orientation = "column";
 dialog.alignChildren = ["left", "top"];
 dialog.spacing = 10;
